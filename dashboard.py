@@ -44,7 +44,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ── CONFIG (mirrors model.py) ─────────────────────────────────────────────────
+# ── CONFIG ────────────────────────────────────────────────────────────────────
 
 DEFAULT_WATCHLIST = ["AAPL","MSFT","NVDA","GOOGL","META","AMZN","JPM","XOM","UNH","V"]
 
@@ -71,7 +71,6 @@ VIX_PAUSE = 30
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/8/8a/NYSE_logo.svg", width=120)
     st.markdown("## ⚙️ Settings")
 
     user_input = st.text_input(
@@ -100,7 +99,7 @@ with st.sidebar:
     st.markdown("---")
     st.caption(f"Last run: {datetime.now().strftime('%H:%M:%S')}")
 
-# ── DATA & SCORING FUNCTIONS (same logic as model.py) ─────────────────────────
+# ── SCORING FUNCTIONS ─────────────────────────────────────────────────────────
 
 def normalise(val, lo, hi):
     return float(np.clip((val - lo) / (hi - lo) * 100, 0, 100))
@@ -109,7 +108,8 @@ def normalise(val, lo, hi):
 def fetch_all(tickers):
     end   = datetime.today()
     start = end - timedelta(days=90)
-    return yf.download(tickers, start=start, end=end, auto_adjust=True, progress=False)
+    return yf.download(list(tickers), start=start, end=end,
+                       auto_adjust=True, progress=False)
 
 def get_series(raw, kind, ticker):
     try:
@@ -125,12 +125,13 @@ def score_pv(close_s, vol_s):
 
 def score_vol(vix_s, close_s):
     vix_score = 100 - normalise(vix_s.iloc[-1], 10, 40)
-    hi = close_s.rolling(2).max(); lo = close_s.rolling(2).min()
+    hi = close_s.rolling(2).max()
+    lo = close_s.rolling(2).min()
     atr_pct = ((hi - lo) / close_s).rolling(14).mean().iloc[-1] * 100
     return (vix_score + (100 - normalise(atr_pct, 0.5, 5.0))) / 2
 
 def score_breadth(spy_close):
-    ma50  = spy_close.rolling(50).mean().iloc[-1]
+    ma50 = spy_close.rolling(50).mean().iloc[-1]
     return normalise(spy_close.iloc[-1] / ma50, 0.90, 1.10)
 
 def score_yield(raw):
@@ -164,10 +165,11 @@ def atr_stop(close_s):
 
 @st.cache_data(ttl=300)
 def run_model(watchlist_key, weights_key):
-    all_tix = list(set(
-        WATCHLIST + list(SECTOR_MAP.values()) + ["SPY","^VIX","^TNX","^FVX"]
+    all_tix = tuple(set(
+        list(watchlist_key) + list(SECTOR_MAP.values()) +
+        ["SPY", "^VIX", "^TNX", "^FVX"]
     ))
-    raw = fetch_all(tuple(all_tix))
+    raw = fetch_all(all_tix)
 
     vix_s   = get_series(raw, "Close", "^VIX")
     spy_s   = get_series(raw, "Close", "SPY")
@@ -175,30 +177,41 @@ def run_model(watchlist_key, weights_key):
     regime  = vix_now < VIX_PAUSE
 
     rows = []
-    for ticker in WATCHLIST:
+    for ticker in watchlist_key:
         close_s = get_series(raw, "Close", ticker)
         vol_s   = get_series(raw, "Volume", ticker)
         sect_s  = get_series(raw, "Close", SECTOR_MAP.get(ticker, "SPY"))
-        if len(close_s) < 25: continue
+        if len(close_s) < 25:
+            continue
         try:
             pv  = score_pv(close_s, vol_s)
             vlt = score_vol(vix_s, close_s)
             brd = score_breadth(spy_s)
             yld = score_yield(raw)
             rs  = score_rs(close_s, sect_s)
-            dms = (WEIGHTS["price_vol"] * pv + WEIGHTS["sector_rs"] * rs +
-                   WEIGHTS["breadth"] * brd + WEIGHTS["volatility"] * vlt +
-                   WEIGHTS["yield_curve"] * yld)
-            sig, act = get_signal(dms)
+            dms = (WEIGHTS["price_vol"]  * pv  +
+                   WEIGHTS["sector_rs"]  * rs  +
+                   WEIGHTS["breadth"]    * brd +
+                   WEIGHTS["volatility"] * vlt +
+                   WEIGHTS["yield_curve"]* yld)
+            sig, act  = get_signal(dms)
             stop, atr = atr_stop(close_s)
             rows.append({
-                "Ticker": ticker, "Price": round(close_s.iloc[-1], 2),
-                "DMS": round(dms, 1), "Signal": sig, "Action": act,
-                "Stop": stop, "ATR": atr,
-                "Sector": SECTOR_NAMES.get(SECTOR_MAP.get(ticker,""), "—"),
-                "PV": round(pv,1), "Volatility": round(vlt,1),
-                "Breadth": round(brd,1), "Yield": round(yld,1), "SectorRS": round(rs,1),
-                "Close": close_s, "blocked": not regime and "BUY" in sig
+                "Ticker":     ticker,
+                "Price":      round(close_s.iloc[-1], 2),
+                "DMS":        round(dms, 1),
+                "Signal":     sig,
+                "Action":     act,
+                "Stop":       stop,
+                "ATR":        atr,
+                "Sector":     SECTOR_NAMES.get(SECTOR_MAP.get(ticker, ""), "—"),
+                "PV":         round(pv, 1),
+                "Volatility": round(vlt, 1),
+                "Breadth":    round(brd, 1),
+                "Yield":      round(yld, 1),
+                "SectorRS":   round(rs, 1),
+                "Close":      close_s,
+                "blocked":    not regime and "BUY" in sig
             })
         except Exception:
             continue
@@ -218,14 +231,15 @@ st.markdown("""
 # ── LOAD DATA ─────────────────────────────────────────────────────────────────
 
 with st.spinner("Fetching market data..."):
-    wl_key = ",".join(WATCHLIST)
+    wl_key = tuple(WATCHLIST)
     w_key  = str(WEIGHTS)
     df, vix_now, regime = run_model(wl_key, w_key)
 
 # ── TOP KPIs ──────────────────────────────────────────────────────────────────
 
 k1, k2, k3, k4, k5 = st.columns(5)
-k1.metric("VIX", f"{vix_now:.1f}", delta="Risk-ON" if regime else "Risk-OFF",
+k1.metric("VIX", f"{vix_now:.1f}",
+          delta="Risk-ON" if regime else "Risk-OFF",
           delta_color="normal" if regime else "inverse")
 k2.metric("Stocks Scored", len(df))
 k3.metric("Buy Signals",   len(df[df["Signal"].isin(["STRONG BUY","BUY"])]))
@@ -253,20 +267,19 @@ with tab1:
         return f"color: {c}; font-weight: bold"
 
     def colour_dms(val):
-        if val >= 75: bg = "#1b5e20"
+        if val >= 75:   bg = "#1b5e20"
         elif val >= 60: bg = "#2e7d32"
         elif val >= 40: bg = "#f57f17"
         elif val >= 25: bg = "#bf360c"
-        else: bg = "#b71c1c"
+        else:           bg = "#b71c1c"
         return f"background-color: {bg}; color: white; font-weight: bold"
 
     styled = (display_df.style
-              .applymap(colour_signal, subset=["Signal"])
-              .applymap(colour_dms,    subset=["DMS"]))
+              .map(colour_signal, subset=["Signal"])
+              .map(colour_dms,    subset=["DMS"]))
 
     st.dataframe(styled, use_container_width=True, height=420)
 
-    # Download
     csv = display_df.to_csv(index=False)
     st.download_button("⬇️ Download CSV", csv,
                        f"signals_{datetime.today().strftime('%Y%m%d')}.csv",
@@ -294,7 +307,6 @@ with tab2:
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 
-    # Radar for selected stock
     st.markdown("#### Radar Chart — Individual Stock")
     sel = st.selectbox("Select stock", df["Ticker"].tolist())
     row = df[df["Ticker"] == sel].iloc[0]
@@ -338,7 +350,6 @@ with tab3:
     fig_heat.update_layout(paper_bgcolor="#0e1117", font_color="white")
     st.plotly_chart(fig_heat, use_container_width=True)
 
-    # Scatter: DMS vs sector
     fig_scatter = px.scatter(
         df, x="Sector", y="DMS", size=[20]*len(df),
         color="Signal", color_discrete_map=SIGNAL_COLORS,
@@ -366,7 +377,6 @@ with tab4:
     close_s = row2["Close"]
 
     fig_price = go.Figure()
-
     fig_price.add_trace(go.Scatter(
         x=close_s.index, y=close_s.values,
         name="Price", line=dict(color="#2196F3", width=2)
@@ -381,10 +391,9 @@ with tab4:
     ))
     fig_price.add_hline(
         y=row2["Stop"], line_dash="dash", line_color="#ff1744",
-        annotation_text=f"Stop: {row2['Stop']}", annotation_font_color="#ff1744"
+        annotation_text=f"Stop: {row2['Stop']}",
+        annotation_font_color="#ff1744"
     )
-
-    sig_color = SIGNAL_COLORS.get(row2["Signal"], "white")
     fig_price.update_layout(
         title=f"{sel2} — {row2['Signal']}  |  DMS: {row2['DMS']}  |  Price: ${row2['Price']}",
         paper_bgcolor="#0e1117", plot_bgcolor="#1c2030",
@@ -394,8 +403,8 @@ with tab4:
     )
     st.plotly_chart(fig_price, use_container_width=True)
 
-    # DMS gauge
     st.markdown(f"#### {sel2} — DMS Gauge")
+    sig_color = SIGNAL_COLORS.get(row2["Signal"], "white")
     fig_gauge = go.Figure(go.Indicator(
         mode="gauge+number+delta",
         value=row2["DMS"],
@@ -404,11 +413,11 @@ with tab4:
             "axis": {"range": [0,100]},
             "bar":  {"color": sig_color},
             "steps":[
-                {"range":[0,25],  "color":"#b71c1c"},
-                {"range":[25,40], "color":"#bf360c"},
-                {"range":[40,60], "color":"#f57f17"},
-                {"range":[60,75], "color":"#2e7d32"},
-                {"range":[75,100],"color":"#1b5e20"},
+                {"range":[0,25],   "color":"#b71c1c"},
+                {"range":[25,40],  "color":"#bf360c"},
+                {"range":[40,60],  "color":"#f57f17"},
+                {"range":[60,75],  "color":"#2e7d32"},
+                {"range":[75,100], "color":"#1b5e20"},
             ],
             "threshold":{"line":{"color":"white","width":3},"value":row2["DMS"]}
         },
