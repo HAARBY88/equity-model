@@ -108,12 +108,19 @@ def normalise(val, lo, hi):
 def fetch_all(tickers):
     end   = datetime.today()
     start = end - timedelta(days=90)
-    return yf.download(list(tickers), start=start, end=end,
-                       auto_adjust=True, progress=False)
+    raw = yf.download(list(tickers), start=start, end=end,
+                      auto_adjust=True, progress=False, group_by="ticker")
+    return raw
 
 def get_series(raw, kind, ticker):
     try:
-        return raw[kind][ticker].dropna()
+        # group_by="ticker" gives (ticker, field) MultiIndex columns
+        if (ticker, kind) in raw.columns:
+            return raw[(ticker, kind)].dropna()
+        # fallback: single-ticker download has flat columns
+        if kind in raw.columns:
+            return raw[kind].dropna()
+        return pd.Series(dtype=float)
     except Exception:
         return pd.Series(dtype=float)
 
@@ -216,6 +223,9 @@ def run_model(watchlist_key, weights_key):
         except Exception:
             continue
 
+    if not rows:
+        st.error("No data returned for any ticker. Check your watchlist or try again shortly.")
+        st.stop()
     df = pd.DataFrame(rows).sort_values("DMS", ascending=False)
     return df, vix_now, regime
 
