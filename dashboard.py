@@ -30,6 +30,45 @@ st.markdown("""
 
 # ── UNIVERSES & MAPS ──────────────────────────────────────────────────────────
 
+FTSE100 = [
+    "SHEL.L","AZN.L","HSBA.L","ULVR.L","BP.L","RIO.L","GSK.L","BATS.L",
+    "DGE.L","REL.L","NG.L","VOD.L","LLOY.L","BARC.L","NWG.L","IMB.L",
+    "PRU.L","LSEG.L","ABF.L","CRH.L","EXPN.L","FERG.L","HIK.L","HLMA.L",
+    "IHG.L","III.L","JD.L","KGF.L","LAND.L","MKS.L","MNG.L","MNDI.L",
+    "OCDO.L","PSN.L","RKT.L","RMV.L","SGE.L","SMDS.L","SMIN.L","SSE.L",
+    "SVT.L","TSCO.L","TW.L","AAL.L","ADM.L","AGK.L","ANTO.L","AUTO.L",
+    "AV.L","AVV.L","BA.L","BEZ.L","BKG.L","BME.L","BNZL.L","BOO.L",
+    "BRBY.L","BT-A.L","CCH.L","CCL.L","CNA.L","CPG.L","CRDA.L","DCC.L",
+    "DLN.L","DPLM.L","EDV.L","ENT.L","FLTRF.L","FRES.L","GFS.L","GKN.L",
+    "GLEN.L","GOOG.L","HAS.L","HLN.L","HMSO.L","HWDN.L","IAG.L","ICP.L",
+    "INF.L","ITRK.L","JET2.L","KIE.L","LGEN.L","LMP.L","LRE.L","LSE.L",
+    "MGGT.L","MICT.L","MKTO.L","MMB.L","MNKS.L","MRO.L","NXT.L","OML.L",
+    "PHNX.L","POLYP.L","PPB.L","PZC.L","QQ.L","RDSA.L","RSA.L","RSW.L",
+    "SBRY.L","SDR.L","SGRO.L","SJP.L","SKG.L","SKY.L","SLA.L","SN.L",
+    "SPT.L","STAN.L","STJ.L","TATE.L","TCG.L","TRIG.L","TUI.L","UKW.L",
+    "UTDI.L","UU.L","WG.L","WMH.L","WPP.L","WTB.L","XAR.L","ZAL.L",
+]
+
+FTSE_SECTOR_MAP = {
+    "SHEL.L":"XLE","BP.L":"XLE","RIO.L":"XLB","GLEN.L":"XLB","ANTO.L":"XLB",
+    "FRES.L":"XLB","AAL.L":"XLB","MRO.L":"XLE",
+    "HSBA.L":"XLF","BARC.L":"XLF","LLOY.L":"XLF","NWG.L":"XLF","STAN.L":"XLF",
+    "LSEG.L":"XLF","SJP.L":"XLF","LGEN.L":"XLF","PRU.L":"XLF","AV.L":"XLF",
+    "RSA.L":"XLF","LRE.L":"XLF","PHNX.L":"XLF","MNG.L":"XLF","III.L":"XLF",
+    "AZN.L":"XLV","GSK.L":"XLV","HIK.L":"XLV","HLN.L":"XLV","STJ.L":"XLV",
+    "EXPN.L":"XLK","SGE.L":"XLK","AVV.L":"XLK","REL.L":"XLK","DPLM.L":"XLK",
+    "HLMA.L":"XLK","SMIN.L":"XLK","ITRK.L":"XLK","CML.L":"XLK",
+    "ULVR.L":"XLP","BATS.L":"XLP","IMB.L":"XLP","DGE.L":"XLP","ABF.L":"XLP",
+    "TSCO.L":"XLP","SBRY.L":"XLP","MKS.L":"XLP","TATE.L":"XLP","CCH.L":"XLP",
+    "IHG.L":"XLY","JD.L":"XLY","NXT.L":"XLY","BRBY.L":"XLY","RMV.L":"XLY",
+    "AUTO.L":"XLY","OCDO.L":"XLY","TUI.L":"XLY","IAG.L":"XLY","CCL.L":"XLY",
+    "CRH.L":"XLI","FERG.L":"XLI","BA.L":"XLI","RKT.L":"XLI","MNDI.L":"XLI",
+    "SMDS.L":"XLI","PSN.L":"XLI","KIE.L":"XLI","BEZ.L":"XLI",
+    "NG.L":"XLU","SSE.L":"XLU","SVT.L":"XLU","UU.L":"XLU","TRIG.L":"XLU",
+    "VOD.L":"XLC","BT-A.L":"XLC","WPP.L":"XLC","MICT.L":"XLC",
+    "LAND.L":"XLRE","SGRO.L":"XLRE","HMSO.L":"XLRE","LMP.L":"XLRE",
+}
+
 SP500 = [
     "AAPL","MSFT","NVDA","AMZN","META","GOOGL","GOOG","BRK-B","TSLA","LLY",
     "JPM","UNH","XOM","V","AVGO","PG","MA","JNJ","HD","COST",
@@ -308,9 +347,9 @@ st.markdown("---")
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
 
-tab0,tab1,tab2,tab3,tab4,tab5 = st.tabs([
+tab0,tab1,tab2,tab3,tab4,tab5,tab6 = st.tabs([
     "🔭 Screener","🎯 Decisions","🔬 Statistical Detail",
-    "📈 Charts","🎲 Monte Carlo","🔁 Backtest"])
+    "📈 Charts","🎲 Monte Carlo","🔁 Backtest","📂 Positions"])
 
 # ── TAB 0: SCREENER ───────────────────────────────────────────────────────────
 
@@ -321,11 +360,15 @@ with tab0:
 
     sc1,sc2,sc3 = st.columns(3)
     with sc1:
-        universe_choice = st.selectbox("Universe",
-            ["S&P 500","Technology (XLK)","Financials (XLF)",
-             "Healthcare (XLV)","Energy (XLE)","Industrials (XLI)",
-             "Consumer Disc. (XLY)","Consumer Staples (XLP)",
-             "Materials (XLB)","Custom list"])
+        universe_choice = st.selectbox("Universe", [
+        "FTSE 100","S&P 500",
+        "FTSE — Financials","FTSE — Healthcare","FTSE — Energy",
+        "FTSE — Technology","FTSE — Consumer",
+        "S&P — Technology (XLK)","S&P — Financials (XLF)",
+        "S&P — Healthcare (XLV)","S&P — Energy (XLE)",
+        "S&P — Industrials (XLI)","S&P — Consumer Disc. (XLY)",
+        "Custom list"
+    ])
     with sc2:
         min_vol_m = st.slider("Min avg volume (M/day)", 0.5, 5.0, 1.0, 0.5)
     with sc3:
@@ -341,7 +384,9 @@ with tab0:
         etf           = universe_choice.split("(")[1].replace(")","")
         screen_univ   = [t for t,s in SECTOR_MAP.items() if s==etf]
 
-    st.info(f"Universe: **{len(list(dict.fromkeys(screen_univ)))} stocks** → pre-filter → 5-layer model → top {screen_top_n}")
+    st.info(f"Universe: **{len(list(dict.fromkeys(screen_univ)))} stocks** "
+            f"{'🇬🇧 FTSE' if is_ftse else '🇺🇸 S&P'} "
+            f"→ pre-filter → 5-layer model → top {screen_top_n}")
 
     if st.button("🔭 Run Screener", type="primary", use_container_width=True):
         prog = st.progress(0, text="Fetching data...")
@@ -385,7 +430,9 @@ with tab0:
         for i,ticker in enumerate(pf_passed):
             try:
                 c  = get_col(raw_sc,ticker,"Close"); v=get_col(raw_sc,ticker,"Volume")
-                sc = get_col(raw_sc,SECTOR_MAP.get(ticker,"SPY"),"Close")
+                sc = get_col(raw_sc,
+                            (FTSE_SECTOR_MAP if is_ftse else SECTOR_MAP).get(ticker,"SPY"),
+                            "Close")
                 if len(c)<60: continue
                 dms      = compute_dms(c,v,vix_sc,spy_sc,sc,t10_sc,t5_sc)
                 wp,n_s   = bayesian_win_prob(c,dms)
@@ -740,17 +787,33 @@ with tab4:
 
 with tab5:
     st.subheader("🔁 Backtest — statistical model")
-    bc1,bc2,bc3,bc4 = st.columns(4)
-    with bc1: bt_tick  = st.selectbox("Stock",WATCHLIST,key="btt")
-    with bc2: bt_start = st.date_input("Start",value=datetime(2022,1,1))
-    with bc3: bt_end   = st.date_input("End",  value=datetime(2024,12,31))
-    with bc4: bt_cap   = st.number_input("Capital ($)",value=100000,step=10000)
+    bc1,bc2,bc3 = st.columns(3)
+    with bc1: bt_tick  = st.text_input("Ticker (any stock)", value="AAPL").upper()
+    with bc2:
+        bt_period = st.selectbox("Period",
+            ["5 years","3 years","2 years","1 year","Custom"], index=0)
+    with bc3: bt_cap = st.number_input("Capital ($)", value=100000, step=10000)
+
+    if bt_period == "Custom":
+        cc1, cc2 = st.columns(2)
+        with cc1: bt_start = st.date_input("Start date",
+                             value=datetime.today()-timedelta(days=5*365))
+        with cc2: bt_end   = st.date_input("End date", value=datetime.today())
+    else:
+        years    = int(bt_period.split()[0])
+        bt_start = datetime.today() - timedelta(days=years*365)
+        bt_end   = datetime.today()
+
+    st.info(f"Backtest: **{bt_tick}** from "
+            f"**{bt_start.strftime('%d %b %Y') if hasattr(bt_start,'strftime') else bt_start}**"
+            f" → **{bt_end.strftime('%d %b %Y') if hasattr(bt_end,'strftime') else bt_end}**")
 
     @st.cache_data(ttl=600)
     def backtest_stat(ticker,start_str,end_str,capital,params_k):
         all_tix=list(set([ticker,SECTOR_MAP.get(ticker,"SPY"),
                           "SPY","^VIX","^TNX","^FVX"]))
-        raw=yf.download(all_tix,start=start_str,end=end_str,
+        end_dt = datetime.today()
+        raw=yf.download(all_tix,start=start_str,end=end_dt.strftime("%Y-%m-%d"),
                         auto_adjust=True,progress=False,group_by="ticker")
         c=get_col(raw,ticker,"Close"); v=get_col(raw,ticker,"Volume")
         vix=get_col(raw,"^VIX","Close"); spy=get_col(raw,"SPY","Close")
@@ -811,9 +874,11 @@ with tab5:
                 pd.Series(wp_list,index=idx), c)
 
     if st.button("▶️ Run backtest", type="primary"):
-        with st.spinner(f"Backtesting {bt_tick}..."):
-            pk=str((MIN_WIN_PROB,MIN_Z,MAX_Z,KELLY_FRAC,MAX_POS))
-            tdf,eq_s,wp_s,cls_bt=backtest_stat(bt_tick,str(bt_start),str(bt_end),bt_cap,pk)
+        with st.spinner(f"Backtesting {bt_tick} over {bt_period}..."):
+            pk  = str((MIN_WIN_PROB,MIN_Z,MAX_Z,KELLY_FRAC,MAX_POS))
+            bts = str(bt_start.date() if hasattr(bt_start,"date") else bt_start)
+            bte = str(bt_end.date()   if hasattr(bt_end,  "date") else bt_end)
+            tdf,eq_s,wp_s,cls_bt = backtest_stat(bt_tick,bts,bte,bt_cap,pk)
 
         if eq_s is None:
             st.error("Not enough data.")
@@ -896,6 +961,251 @@ with tab5:
                              use_container_width=True,height=260)
                 st.download_button("⬇️ Download trades",tdf.to_csv(index=False),
                                    f"trades_{bt_tick}.csv","text/csv")
+
+# ── TAB 6: POSITION TRACKER ───────────────────────────────────────────────────
+
+with tab6:
+    st.subheader("📂 Position Tracker")
+    st.caption("Log your open trades. The model monitors all exit conditions daily "
+               "and tells you when to act.")
+
+    # ── Initialise session state ──
+    if "positions" not in st.session_state:
+        st.session_state.positions = []
+
+    # ── Add new position ──
+    st.markdown("#### Add a position")
+    p1,p2,p3,p4,p5 = st.columns(5)
+    with p1: pos_ticker  = st.text_input("Ticker",  value="AAPL").upper()
+    with p2: pos_entry   = st.number_input("Entry price ($)", value=100.0, step=0.01)
+    with p3: pos_shares  = st.number_input("Shares", value=10, step=1)
+    with p4: pos_stop    = st.number_input("Stop-loss ($)", value=90.0, step=0.01)
+    with p5: pos_date    = st.date_input("Entry date", value=datetime.today())
+
+    pos_max_weeks = st.slider("Maximum hold (weeks)", 2, 16, 8)
+
+    if st.button("➕ Add position", type="primary"):
+        st.session_state.positions.append({
+            "ticker":    pos_ticker,
+            "entry":     pos_entry,
+            "shares":    pos_shares,
+            "stop":      pos_stop,
+            "date":      str(pos_date),
+            "max_weeks": pos_max_weeks,
+            "trail_high":pos_entry,
+        })
+        st.success(f"Added {pos_ticker} — {pos_shares} shares at ${pos_entry:.2f}")
+
+    if not st.session_state.positions:
+        st.info("No open positions yet. Add one above.")
+    else:
+        st.markdown("---")
+        st.markdown("#### Open positions — live monitoring")
+
+        @st.cache_data(ttl=300)
+        def fetch_position_data(tickers_key):
+            end = datetime.today(); start = end - timedelta(days=420)
+            all_tix = list(set(list(tickers_key) +
+                               list(SECTOR_MAP.values()) +
+                               ["SPY","^VIX","^TNX","^FVX"]))
+            return yf.download(all_tix, start=start, end=end,
+                               auto_adjust=True, progress=False, group_by="ticker")
+
+        pos_tickers = tuple(set(p["ticker"] for p in st.session_state.positions))
+        raw_pos     = fetch_position_data(pos_tickers)
+        vix_pos     = get_col(raw_pos,"^VIX","Close")
+        spy_pos     = get_col(raw_pos,"SPY","Close")
+        t10_pos     = get_col(raw_pos,"^TNX","Close")
+        t5_pos      = get_col(raw_pos,"^FVX","Close")
+        regime_pos, tradeable_pos, *_ = classify_regime(vix_pos, spy_pos)
+
+        to_remove = []
+
+        for idx_p, pos in enumerate(st.session_state.positions):
+            ticker    = pos["ticker"]
+            c         = get_col(raw_pos, ticker, "Close")
+            v         = get_col(raw_pos, ticker, "Volume")
+            sc        = get_col(raw_pos, SECTOR_MAP.get(ticker,"SPY"), "Close")
+
+            if len(c) < 60:
+                st.warning(f"{ticker}: insufficient data."); continue
+
+            # Current stats
+            current_price = float(c.iloc[-1])
+            entry_price   = pos["entry"]
+            shares        = pos["shares"]
+            stop          = pos["stop"]
+            entry_date    = datetime.strptime(pos["date"], "%Y-%m-%d")
+            days_held     = (datetime.today() - entry_date).days
+            weeks_held    = days_held / 7
+            max_weeks     = pos["max_weeks"]
+
+            # P&L
+            pnl_pct  = (current_price - entry_price) / entry_price * 100
+            pnl_cash = (current_price - entry_price) * shares
+            position_value = current_price * shares
+
+            # ATR-based trailing stop
+            atr = float((c.rolling(2).max()-c.rolling(2).min()).rolling(14).mean().iloc[-1])
+            trail_stop = current_price - 2.0 * atr
+            # Update to highest price seen
+            trail_high = max(pos.get("trail_high", entry_price), current_price)
+            st.session_state.positions[idx_p]["trail_high"] = trail_high
+            trail_stop_actual = trail_high - 2.0 * atr
+            breakeven_stop    = entry_price  # move stop here after week 2
+
+            # Statistical signals
+            try:
+                dms      = compute_dms(c, v, vix_pos, spy_pos, sc, t10_pos, t5_pos)
+                win_prob, _ = bayesian_win_prob(c, dms)
+                z        = zscore_entry(c)
+            except:
+                dms=50; win_prob=0.5; z=0.0
+
+            # Exit conditions
+            exit_signals = []
+            exit_urgent  = []
+
+            if current_price <= stop:
+                exit_urgent.append("🔴 STOP-LOSS HIT — exit immediately")
+            if current_price <= trail_stop_actual:
+                exit_urgent.append("🔴 TRAILING STOP HIT — exit immediately")
+            if win_prob < 0.45:
+                exit_signals.append(f"⚠️ Win probability dropped to {win_prob*100:.1f}% (below 45%)")
+            if dms < 40:
+                exit_signals.append(f"⚠️ DMS fell to {dms:.0f} (below 40)")
+            if z > 3.0:
+                exit_signals.append(f"⚠️ Z-score overbought at {z:.2f} — consider trimming")
+            if not tradeable_pos:
+                exit_signals.append(f"⚠️ Regime turned {regime_pos} — consider exiting")
+            if weeks_held >= max_weeks:
+                exit_signals.append(f"⚠️ Maximum hold of {max_weeks} weeks reached")
+
+            # Profit milestones
+            profit_flags = []
+            if pnl_cash >= 3 * atr * shares:
+                profit_flags.append(f"💰 +3× ATR gain — consider selling ⅓")
+            if pnl_cash >= 2 * atr * shares:
+                profit_flags.append(f"💰 +2× ATR gain — consider selling ⅓")
+            if weeks_held >= 2 and pnl_pct > 0:
+                profit_flags.append(f"✅ Week 2+ in profit — move stop to breakeven (${entry_price:.2f})")
+
+            # Overall status
+            if exit_urgent:
+                status_color = "#ff1744"; status_label = "⛔ EXIT NOW"
+            elif exit_signals:
+                status_color = "#ff6e40"; status_label = "⚠️ REVIEW"
+            elif profit_flags:
+                status_color = "#ffd740"; status_label = "💰 MANAGE"
+            else:
+                status_color = "#00e676"; status_label = "✅ HOLD"
+
+            # ── Card ──
+            pnl_color = "#00e676" if pnl_cash >= 0 else "#ff1744"
+
+            with st.container():
+                st.markdown(
+                    f'<div style="background:#1c2030;border-left:4px solid {status_color};'
+                    f'border-radius:8px;padding:16px 20px;margin-bottom:8px;">'
+                    f'<div style="display:flex;justify-content:space-between;align-items:center;">'
+                    f'<div>'
+                    f'<span style="color:white;font-size:20px;font-weight:700">{ticker}</span>'
+                    f'<span style="color:#888;font-size:13px;margin-left:12px">'
+                    f'{shares} shares · entered ${entry_price:.2f} on {pos["date"]}</span>'
+                    f'</div>'
+                    f'<div style="text-align:right;">'
+                    f'<span style="color:{status_color};font-size:15px;font-weight:700">'
+                    f'{status_label}</span>'
+                    f'</div></div></div>',
+                    unsafe_allow_html=True)
+
+                # Metrics row
+                m1,m2,m3,m4,m5,m6,m7 = st.columns(7)
+                m1.metric("Current price",  f"${current_price:.2f}")
+                m2.metric("P&L",            f"${pnl_cash:+,.0f}",
+                          delta=f"{pnl_pct:+.1f}%",
+                          delta_color="normal" if pnl_cash>=0 else "inverse")
+                m3.metric("Position value", f"${position_value:,.0f}")
+                m4.metric("Days held",      f"{days_held}d",
+                          delta=f"{weeks_held:.1f}/{max_weeks} wks")
+                m5.metric("Win prob",       f"{win_prob*100:.1f}%",
+                          delta="✅" if win_prob>=0.55 else "❌",
+                          delta_color="normal" if win_prob>=0.55 else "inverse")
+                m6.metric("DMS",            f"{dms:.0f}",
+                          delta="✅" if dms>=40 else "❌",
+                          delta_color="normal" if dms>=40 else "inverse")
+                m7.metric("Trail stop",     f"${trail_stop_actual:.2f}")
+
+                # Exit alerts
+                if exit_urgent:
+                    for msg in exit_urgent:
+                        st.error(msg)
+                if exit_signals:
+                    for msg in exit_signals:
+                        st.warning(msg)
+                if profit_flags and not exit_urgent:
+                    for msg in profit_flags:
+                        st.info(msg)
+                if not exit_urgent and not exit_signals and not profit_flags:
+                    st.success(f"All conditions healthy — hold. "
+                               f"Next review in {max(1, 7-days_held%7)} days.")
+
+                # Mini price chart
+                with st.expander(f"📈 {ticker} price chart"):
+                    fig_pos = go.Figure()
+                    fig_pos.add_trace(go.Scatter(
+                        x=c.index, y=c.values, name="Price",
+                        line=dict(color="#2196F3", width=1.5)))
+                    fig_pos.add_trace(go.Scatter(
+                        x=c.index, y=c.rolling(20).mean(), name="20MA",
+                        line=dict(color="#ffd740", width=1, dash="dash")))
+                    fig_pos.add_hline(y=entry_price, line_dash="dot",
+                                      line_color="#90caf9",
+                                      annotation_text=f"Entry ${entry_price:.2f}",
+                                      annotation_font_color="#90caf9")
+                    fig_pos.add_hline(y=stop, line_dash="dash",
+                                      line_color="#ff1744",
+                                      annotation_text=f"Stop ${stop:.2f}",
+                                      annotation_font_color="#ff1744")
+                    fig_pos.add_hline(y=trail_stop_actual, line_dash="dot",
+                                      line_color="#ff6e40",
+                                      annotation_text=f"Trail ${trail_stop_actual:.2f}",
+                                      annotation_font_color="#ff6e40")
+                    fig_pos.update_layout(
+                        paper_bgcolor="#0e1117", plot_bgcolor="#1c2030",
+                        font_color="white", height=300,
+                        margin=dict(l=0,r=0,t=20,b=0))
+                    st.plotly_chart(fig_pos, use_container_width=True)
+
+                # Remove button
+                if st.button(f"🗑️ Remove {ticker}", key=f"remove_{idx_p}"):
+                    to_remove.append(idx_p)
+
+                st.markdown("")
+
+        # Remove closed positions
+        for idx_r in sorted(to_remove, reverse=True):
+            st.session_state.positions.pop(idx_r)
+        if to_remove:
+            st.rerun()
+
+        # ── Portfolio summary ──
+        if len(st.session_state.positions) > 1:
+            st.markdown("---")
+            st.markdown("#### Portfolio summary")
+            total_pnl   = sum(
+                (get_col(raw_pos,p["ticker"],"Close").iloc[-1] - p["entry"]) * p["shares"]
+                for p in st.session_state.positions
+                if len(get_col(raw_pos,p["ticker"],"Close")) > 0)
+            total_value = sum(
+                get_col(raw_pos,p["ticker"],"Close").iloc[-1] * p["shares"]
+                for p in st.session_state.positions
+                if len(get_col(raw_pos,p["ticker"],"Close")) > 0)
+            ps1,ps2,ps3 = st.columns(3)
+            ps1.metric("Open positions",  len(st.session_state.positions))
+            ps2.metric("Total P&L",       f"${total_pnl:+,.0f}",
+                       delta_color="normal" if total_pnl>=0 else "inverse")
+            ps3.metric("Total value",     f"${total_value:,.0f}")
 
 st.markdown("---")
 st.caption("⚠️ For informational purposes only. Not financial advice.")
