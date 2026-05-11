@@ -30,18 +30,59 @@ st.markdown("""
 
 # ── UNIVERSES & MAPS ──────────────────────────────────────────────────────────
 
-SP100 = [
-    "AAPL","MSFT","NVDA","AMZN","META","GOOGL","TSLA","LLY","JPM","UNH",
-    "XOM","V","AVGO","PG","MA","JNJ","HD","COST","MRK","ABBV",
-    "CVX","NFLX","BAC","KO","PEP","TMO","WMT","ADBE","CRM","CSCO",
-    "MCD","ACN","ABT","ORCL","AMD","IBM","QCOM","TXN","LIN","GE",
-    "PM","DHR","NEE","INTU","NOW","CAT","SPGI","BA","RTX","UNP",
-    "GS","MS","T","LOW","ISRG","ELV","MDT","AMGN","BLK","DE",
-    "SYK","AXP","GILD","REGN","SCHW","C","CB","ADI","MMC","VRTX",
-    "ETN","SO","DUK","MO","ZTS","BSX","BDX","MDLZ","CI","CL",
-    "ITW","WM","AON","CSX","EW","APD","PGR","CME","NSC","USB",
-    "EMR","FDX","ECL","TGT","SHW","ICE","PLD","FIS","BRK-B","NKE"
+SP500 = [
+    "AAPL","MSFT","NVDA","AMZN","META","GOOGL","GOOG","BRK-B","TSLA","LLY",
+    "JPM","UNH","XOM","V","AVGO","PG","MA","JNJ","HD","COST",
+    "MRK","ABBV","CVX","NFLX","BAC","KO","PEP","TMO","WMT","ADBE",
+    "CRM","CSCO","MCD","ACN","ABT","ORCL","AMD","IBM","QCOM","TXN",
+    "LIN","GE","PM","DHR","NEE","INTU","NOW","CAT","SPGI","BA",
+    "RTX","UNP","GS","MS","T","LOW","ISRG","ELV","MDT","AMGN",
+    "BLK","DE","SYK","AXP","GILD","REGN","SCHW","C","CB","ADI",
+    "MMC","VRTX","ETN","SO","DUK","MO","ZTS","BSX","BDX","MDLZ",
+    "CI","CL","ITW","WM","AON","CSX","EW","APD","PGR","CME",
+    "NSC","USB","EMR","FDX","ECL","TGT","SHW","ICE","PLD","NKE",
+    "WFC","PYPL","INTC","NFLX","HON","UPS","NEE","BMY","AMGN","CVS",
+    "SBUX","F","GM","RIVN","LCID","SNAP","PINS","LYFT","UBER","ABNB",
+    "DASH","COIN","HOOD","SOFI","AFRM","UPST","LC","SQ","BLOCK","SHOP",
+    "SPOT","RBLX","U","MTCH","IAC","ZG","OPEN","OPENDOOR","REDFIN","Z",
+    "CZR","MGM","LVS","WYNN","RCL","CCL","NCLH","MAR","HLT","H",
+    "DAL","UAL","AAL","LUV","ALK","JBLU","HA","SKYW","SAVE","MESA",
+    "XOM","CVX","COP","EOG","SLB","HAL","BKR","OXY","DVN","FANG",
+    "MPC","PSX","VLO","HES","APA","NOV","FTI","RIG","NE","VAL",
+    "JPM","BAC","WFC","C","GS","MS","USB","PNC","TFC","COF",
+    "AXP","DFS","SYF","ALLY","CFG","FITB","HBAN","KEY","RF","MTB",
+    "BK","STT","NTRS","TROW","BEN","IVZ","AMG","WDR","VRTS","APAM",
+    "V","MA","PYPL","FIS","FISV","GPN","WEX","EVTC","PAYO","NUVEI",
+    "UNH","CVS","CI","HUM","CNC","MOH","ELV","HCA","THC","UHS",
+    "JNJ","PFE","MRK","ABBV","LLY","BMY","AMGN","GILD","BIIB","REGN",
+    "VRTX","MRNA","BNTX","NVAX","SNY","AZN","GSK","NVO","RHHBY","MYL",
+    "MDT","ABT","BSX","SYK","ISRG","ZBH","BAX","BDX","EW","HOLX",
+    "TMO","DHR","A","WAT","IDXX","METTLER","BIO","QGEN","IQV","CRL",
+    "AAPL","MSFT","NVDA","AMD","INTC","QCOM","TXN","MU","AMAT","LRCX",
+    "KLAC","ASML","CDNS","SNPS","ANSS","PTC","EPAM","CTSH","INFY","WIT",
+    "CRM","NOW","WDAY","VEEV","HUBS","DDOG","ZS","CRWD","S","PANW",
+    "OKTA","SAIL","TENB","QLYS","VRNT","CYBR","FTNT","CHKP","NLOK","GEN",
+    "GOOGL","META","NFLX","DIS","CMCSA","CHTR","PARA","WBD","FOX","FOXA",
+    "TTWO","EA","ATVI","RBLX","U","ZNGA","PLTV","SKLZ","HUYA","IQ",
+    "AMZN","SHOP","EBAY","ETSY","W","CHWY","OSTK","PRTS","CVNA","KMX",
+    "HD","LOW","WSM","RH","BBBY","BIG","DDS","M","KSS","JWN",
+    "WMT","TGT","COST","BJ","SFM","WINN","KR","ACI","SVU","CASY",
+    "MCD","SBUX","YUM","QSR","DRI","TXRH","BJRI","CAKE","RUTH","EAT",
+    "PG","KO","PEP","PM","MO","MDLZ","KHC","GIS","K","CPB",
+    "CL","CHD","COTY","ELF","REVG","NWSA","NWS","NYT","GCI","MDP",
+    "CAT","DE","EMR","ETN","HON","MMM","ITW","PH","ROK","DOV",
+    "GE","RTX","LMT","NOC","GD","LHX","TDG","HEI","TXT","HII",
+    "UPS","FDX","XPO","CHRW","EXPD","JBHT","ODFL","SAIA","ARCB","HTLD",
+    "NSC","UNP","CSX","KSU","CP","CNI","WAB","TRN","GATX","RAIL",
+    "NEE","DUK","SO","D","EXC","AEP","XEL","ES","WEC","DTE",
+    "AWK","CWT","SJW","YORW","MSEX","ARTNA","GWRS","ARTESIAN","CCWC","PCYO",
+    "AMT","PLD","CCI","EQIX","DLR","PSA","EXR","CUBE","LSI","NSA",
+    "SPG","O","VICI","GLPI","LADR","MPW","PEAK","VTR","WELL","HR",
+    "LIN","APD","ECL","SHW","PPG","RPM","AXTA","TROX","HUN","KWR",
+    "NEM","GOLD","AEM","KGC","AG","PAAS","WPM","FNV","RGLD","OR",
+    "FCX","SCCO","HBM","TGB","TECK","FM","IVN","CEIX","ARCH","METC",
 ]
+SP100 = SP500  # alias kept for compatibility
 
 SECTOR_MAP = {
     "AAPL":"XLK","MSFT":"XLK","NVDA":"XLK","GOOGL":"XLC","META":"XLC",
@@ -281,8 +322,10 @@ with tab0:
     sc1,sc2,sc3 = st.columns(3)
     with sc1:
         universe_choice = st.selectbox("Universe",
-            ["S&P 100","Technology (XLK)","Financials (XLF)",
-             "Healthcare (XLV)","Energy (XLE)","Custom list"])
+            ["S&P 500","Technology (XLK)","Financials (XLF)",
+             "Healthcare (XLV)","Energy (XLE)","Industrials (XLI)",
+             "Consumer Disc. (XLY)","Consumer Staples (XLP)",
+             "Materials (XLB)","Custom list"])
     with sc2:
         min_vol_m = st.slider("Min avg volume (M/day)", 0.5, 5.0, 1.0, 0.5)
     with sc3:
@@ -292,13 +335,13 @@ with tab0:
         custom_input  = st.text_input("Tickers (comma-separated)",
                                       value="AAPL,MSFT,NVDA,TSLA,AMD,META,GOOGL,AMZN")
         screen_univ   = [t.strip().upper() for t in custom_input.split(",") if t.strip()]
-    elif universe_choice == "S&P 100":
-        screen_univ   = SP100
+    elif universe_choice == "S&P 500":
+        screen_univ   = list(dict.fromkeys(SP500))  # deduplicated
     else:
         etf           = universe_choice.split("(")[1].replace(")","")
         screen_univ   = [t for t,s in SECTOR_MAP.items() if s==etf]
 
-    st.info(f"Universe: **{len(screen_univ)} stocks** → pre-filter → 5-layer model → top {screen_top_n}")
+    st.info(f"Universe: **{len(list(dict.fromkeys(screen_univ)))} stocks** → pre-filter → 5-layer model → top {screen_top_n}")
 
     if st.button("🔭 Run Screener", type="primary", use_container_width=True):
         prog = st.progress(0, text="Fetching data...")
