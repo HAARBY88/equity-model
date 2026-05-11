@@ -279,9 +279,229 @@ st.markdown("---")
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
 
-tab1,tab2,tab3,tab4,tab5 = st.tabs([
-    "🎯 Decisions","🔬 Statistical Detail",
+tab0,tab1,tab2,tab3,tab4,tab5 = st.tabs([
+    "🔭 Screener","🎯 Decisions","🔬 Statistical Detail",
     "📈 Charts","🎲 Monte Carlo","🔁 Backtest"])
+
+# ── TAB 0: SCREENER ───────────────────────────────────────────────────────────
+
+SP100 = [
+    "AAPL","MSFT","NVDA","AMZN","META","GOOGL","TSLA","LLY","JPM","UNH",
+    "XOM","V","AVGO","PG","MA","JNJ","HD","COST","MRK","ABBV",
+    "CVX","NFLX","BAC","KO","PEP","TMO","WMT","ADBE","CRM","CSCO",
+    "MCD","ACN","ABT","ORCL","AMD","IBM","QCOM","TXN","LIN","GE",
+    "PM","DHR","NEE","INTU","NOW","CAT","SPGI","BA","RTX","UNP",
+    "GS","MS","T","LOW","ISRG","ELV","MDT","AMGN","BLK","DE",
+    "SYK","AXP","GILD","REGN","SCHW","C","CB","ADI","MMC","VRTX",
+    "ETN","SO","DUK","MO","ZTS","BSX","BDX","MDLZ","CI","CL",
+    "ITW","WM","AON","CSX","EW","APD","PGR","CME","NSC","USB",
+    "EMR","FDX","ECL","TGT","SHW","ICE","AMGN","PLD","FIS","BRK-B"
+]
+
+SCREEN_SECTOR_MAP = {
+    "AAPL":"XLK","MSFT":"XLK","NVDA":"XLK","GOOGL":"XLC","META":"XLC",
+    "AMZN":"XLY","TSLA":"XLY","JPM":"XLF","UNH":"XLV","XOM":"XLE",
+    "V":"XLF","AVGO":"XLK","PG":"XLP","MA":"XLF","JNJ":"XLV",
+    "HD":"XLY","COST":"XLP","MRK":"XLV","ABBV":"XLV","CVX":"XLE",
+    "NFLX":"XLC","BAC":"XLF","KO":"XLP","PEP":"XLP","TMO":"XLV",
+    "WMT":"XLP","ADBE":"XLK","CRM":"XLK","CSCO":"XLK","MCD":"XLY",
+    "ACN":"XLK","ABT":"XLV","ORCL":"XLK","AMD":"XLK","IBM":"XLK",
+    "QCOM":"XLK","TXN":"XLK","LIN":"XLB","GE":"XLI","PM":"XLP",
+    "DHR":"XLV","NEE":"XLU","INTU":"XLK","NOW":"XLK","CAT":"XLI",
+    "SPGI":"XLF","BA":"XLI","RTX":"XLI","UNP":"XLI","GS":"XLF",
+    "MS":"XLF","T":"XLC","LOW":"XLY","ISRG":"XLV","ELV":"XLV",
+    "MDT":"XLV","AMGN":"XLV","BLK":"XLF","DE":"XLI","SYK":"XLV",
+    "AXP":"XLF","GILD":"XLV","REGN":"XLV","SCHW":"XLF","C":"XLF",
+    "CB":"XLF","ADI":"XLK","MMC":"XLF","VRTX":"XLV","ETN":"XLI",
+    "SO":"XLU","DUK":"XLU","MO":"XLP","ZTS":"XLV","BSX":"XLV",
+    "BDX":"XLV","MDLZ":"XLP","CI":"XLV","CL":"XLP","ITW":"XLI",
+    "WM":"XLI","AON":"XLF","CSX":"XLI","EW":"XLV","APD":"XLB",
+    "PGR":"XLF","CME":"XLF","NSC":"XLI","USB":"XLF","EMR":"XLI",
+    "FDX":"XLI","ECL":"XLB","TGT":"XLY","SHW":"XLB","ICE":"XLF",
+    "PLD":"XLRE","FIS":"XLK","BRK-B":"XLF",
+}
+
+with tab0:
+    st.subheader("🔭 Universe Screener")
+    st.caption("Scans S&P 100 (or a custom list) through pre-filters then the full "
+               "5-layer statistical model. Surfaces only the highest-probability setups.")
+
+    sc1,sc2,sc3 = st.columns(3)
+    with sc1:
+        universe_choice = st.selectbox("Universe",
+            ["S&P 100","Technology (XLK)","Financials (XLF)",
+             "Healthcare (XLV)","Energy (XLE)","Custom list"])
+    with sc2:
+        min_vol_m = st.slider("Min avg volume (M shares/day)", 0.5, 5.0, 1.0, 0.5)
+    with sc3:
+        screen_top_n = st.slider("Return top N stocks", 3, 20, 10)
+
+    if universe_choice == "Custom list":
+        custom_input = st.text_input("Enter tickers (comma-separated)",
+                                     value="AAPL,MSFT,NVDA,TSLA,AMD,META,GOOGL,AMZN")
+        screen_universe = [t.strip().upper() for t in custom_input.split(",") if t.strip()]
+    elif universe_choice == "S&P 100":
+        screen_universe = SP100
+    else:
+        etf = universe_choice.split("(")[1].replace(")","")
+        screen_universe = [t for t,s in SCREEN_SECTOR_MAP.items() if s==etf]
+
+    st.info(f"Universe: **{len(screen_universe)} stocks** → pre-filter → "
+            f"5-layer model → top {screen_top_n}")
+
+    run_screen = st.button("🔭 Run Screener", type="primary", use_container_width=True)
+
+    if run_screen:
+        prog = st.progress(0, text="Fetching universe data...")
+
+        @st.cache_data(ttl=600)
+        def fetch_screen_universe(tickers_key):
+            all_tix = list(set(list(tickers_key) +
+                               list(set(SCREEN_SECTOR_MAP.values())) +
+                               ["SPY","^VIX","^TNX","^FVX"]))
+            end = datetime.today(); start = end - timedelta(days=420)
+            return yf.download(all_tix, start=start, end=end,
+                               auto_adjust=True, progress=False, group_by="ticker")
+
+        raw_sc  = fetch_screen_universe(tuple(screen_universe))
+        vix_sc  = get_col(raw_sc,"^VIX","Close")
+        spy_sc  = get_col(raw_sc,"SPY","Close")
+        t10_sc  = get_col(raw_sc,"^TNX","Close")
+        t5_sc   = get_col(raw_sc,"^FVX","Close")
+
+        prog.progress(20, text="Pre-filtering...")
+
+        # Pre-filter
+        pf_passed = []; pf_reasons = {}
+        _, tradeable_sc = classify_regime(vix_sc, spy_sc)
+
+        for ticker in screen_universe:
+            c = get_col(raw_sc, ticker, "Close")
+            v = get_col(raw_sc, ticker, "Volume")
+            if len(c)<55 or len(v)<20:
+                pf_reasons[ticker]="Insufficient data"; continue
+            price   = c.iloc[-1]
+            avg_vol = v.rolling(20).mean().iloc[-1]
+            ma50    = c.rolling(50).mean().iloc[-1]
+            ret20   = (c.iloc[-1]/c.iloc[-20])-1
+            if price < 10:
+                pf_reasons[ticker]=f"Price ${price:.0f}<$10"; continue
+            if avg_vol < min_vol_m*1e6:
+                pf_reasons[ticker]=f"Low volume"; continue
+            if c.iloc[-1] < ma50:
+                pf_reasons[ticker]="Below 50MA"; continue
+            if ret20 <= 0:
+                pf_reasons[ticker]=f"Negative momentum"; continue
+            pf_passed.append(ticker)
+
+        prog.progress(40, text=f"Pre-filter: {len(pf_passed)}/{len(screen_universe)} passed. Running model...")
+
+        # Score each
+        sc_results = []
+        for idx_i, ticker in enumerate(pf_passed):
+            try:
+                c  = get_col(raw_sc, ticker, "Close")
+                v  = get_col(raw_sc, ticker, "Volume")
+                sc = get_col(raw_sc, SCREEN_SECTOR_MAP.get(ticker,"SPY"), "Close")
+                if len(c)<60: continue
+                dms  = compute_dms(c, v, vix_sc, spy_sc, sc, t10_sc, t5_sc)
+                wp,n = bayesian_win_prob(c, dms)
+                z    = zscore_entry(c)
+                kel  = kelly_size(wp)
+                p25,p50,p75,ploss = monte_carlo(c, kel, n=500) if kel>0 else (0,0,0,1.0)
+                _,trd = classify_regime(vix_sc, spy_sc)
+                l1=wp>=MIN_WIN_PROB; l2=trd; l3=MIN_Z<=z<=MAX_Z
+                l4=kel>0.01; l5=p25>P25_FLOOR
+                atr=(c.rolling(2).max()-c.rolling(2).min()).rolling(14).mean().iloc[-1]
+                sc_results.append({
+                    "Ticker":ticker, "Price":round(float(c.iloc[-1]),2),
+                    "DMS":dms, "Win Prob %":round(wp*100,1),
+                    "Z-Score":z, "Kelly %":round(kel*100,1),
+                    "P25 $":p25, "EV $":p50, "P75 $":p75,
+                    "P(loss) %":round(ploss*100,1),
+                    "All pass":l1 and l2 and l3 and l4 and l5,
+                    "L1":("✅" if l1 else "❌"),
+                    "L2":("✅" if l2 else "❌"),
+                    "L3":("✅" if l3 else "❌"),
+                    "L4":("✅" if l4 else "❌"),
+                    "L5":("✅" if l5 else "❌"),
+                    "Stop":round(float(c.iloc[-1])-1.5*float(atr),2),
+                    "Sector":SECTOR_NAMES.get(SCREEN_SECTOR_MAP.get(ticker,""),"—"),
+                })
+            except: pass
+            prog.progress(40+int(55*idx_i/max(len(pf_passed),1)),
+                         text=f"Scoring {ticker}...")
+
+        prog.progress(100, text="Done.")
+
+        if not sc_results:
+            st.warning("No results generated.")
+        else:
+            sc_df = pd.DataFrame(sc_results).sort_values("EV $", ascending=False)
+            winners = sc_df[sc_df["All pass"]]
+            near    = sc_df[~sc_df["All pass"]].head(10)
+
+            # Summary
+            s1,s2,s3,s4 = st.columns(4)
+            s1.metric("Universe scanned",  len(screen_universe))
+            s2.metric("Passed pre-filter", len(pf_passed))
+            s3.metric("Pass all 5 layers", len(winners))
+            s4.metric("Regime",
+                      results[0]["regime"] if results else "—",
+                      delta="Tradeable ✅" if tradeable_sc else "Bear ❌",
+                      delta_color="normal" if tradeable_sc else "inverse")
+
+            st.markdown("---")
+
+            if len(winners):
+                st.success(f"✅ **{len(winners)} stock(s) pass all 5 layers today:** "
+                           f"{', '.join(winners['Ticker'].tolist())}")
+                st.markdown("#### Top trade candidates")
+                disp_cols=["Ticker","Price","DMS","Win Prob %","Z-Score",
+                           "Kelly %","P25 $","EV $","Stop","Sector",
+                           "L1","L2","L3","L4","L5"]
+                def chighlight(v):
+                    return ("color:#00e676;font-weight:bold" if v=="✅"
+                            else "color:#ff1744;font-weight:bold")
+                def cev(v):
+                    return (f"color:{'#00e676' if v>0 else '#ff1744'};font-weight:bold")
+                styled = (winners[disp_cols].style
+                          .map(chighlight, subset=["L1","L2","L3","L4","L5"])
+                          .map(cev, subset=["EV $"]))
+                st.dataframe(styled, use_container_width=True,
+                             height=min(60+len(winners)*40, 400))
+
+                # EV bar chart
+                fig_ev = px.bar(
+                    winners.head(screen_top_n).sort_values("EV $"),
+                    x="EV $", y="Ticker", orientation="h",
+                    color="Win Prob %",
+                    color_continuous_scale="RdYlGn",
+                    range_color=[45,75],
+                    title="Expected value by stock (size = Kelly %)",
+                    height=max(250, len(winners)*50))
+                fig_ev.update_layout(paper_bgcolor="#0e1117",
+                                     plot_bgcolor="#1c2030",
+                                     font_color="white")
+                st.plotly_chart(fig_ev, use_container_width=True)
+
+            else:
+                st.warning("❌ No stocks pass all 5 layers today.")
+
+            st.markdown("#### Near misses (1–2 layers failing)")
+            if len(near):
+                st.dataframe(
+                    near[["Ticker","Price","DMS","Win Prob %","Z-Score",
+                           "EV $","L1","L2","L3","L4","L5","Sector"]],
+                    use_container_width=True, height=300)
+            else:
+                st.info("No near misses.")
+
+            st.download_button(
+                "⬇️ Download full screener results",
+                sc_df.to_csv(index=False),
+                f"screener_{datetime.today().strftime('%Y%m%d')}.csv",
+                "text/csv")
 
 # ── TAB 1: DECISIONS ──────────────────────────────────────────────────────────
 
