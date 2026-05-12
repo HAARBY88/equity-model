@@ -41,62 +41,7 @@ WEIGHTS = {
     "volatility":0.15,"yield_curve":0.10
 }
 
-# ── UNIVERSES ─────────────────────────────────────────────────────────────────
-
-FTSE250 = [
-    "3IN.L","ABF.L","AEW.L","AGR.L","AIEA.L","AJB.L","ANIC.L","ANP.L","APAX.L","APEO.L",
-    "ATG.L","ATM.L","ATST.L","AV.L","AVG.L","AWE.L","AXS.L","BBY.L","BCPT.L","BEG.L",
-    "BKG.L","BLTG.L","BME.L","BMS.L","BNKR.L","BOO.L","BOWL.L","BRW.L","BYG.L","CAL.L",
-    "CBOX.L","CDFF.L","CEY.L","CHG.L","CLDN.L","CLIG.L","CLW.L","CMCX.L","CNE.L","COPL.L",
-    "CTEC.L","CVS.L","CWK.L","DARK.L","DCG.L","DEVO.L","DKG.L","DLG.L","DNO.L","DOCS.L",
-    "DPLM.L","DRX.L","DSG.L","DUTY.L","DWF.L","ECOR.L","EDEN.L","ELAS.L","EMG.L","ERM.L",
-    "ESNT.L","ESYS.L","ETF.L","EVRB.L","EWI.L","EXL.L","EYES.L","EZJ.L","FAN.L","FCIT.L",
-    "FGP.L","FHPE.L","FIGS.L","FIPP.L","FJV.L","FLO.L","FLT.L","FNX.L","FRAS.L","FSFL.L",
-    "GAW.L","GBG.L","GDWN.L","GEM.L","GEN.L","GENL.L","GKN.L","GLE.L","GLIF.L","GMG.L",
-    "GNS.L","GPOR.L","GRIO.L","GRI.L","GRG.L","GSS.L","GYM.L","HANA.L","HAS.L","HICL.L",
-    "HIG.L","HIGG.L","HIK.L","HNE.L","HOME.L","HOTB.L","HRI.L","HRTG.L","HSL.L","HTG.L",
-    "HWDN.L","HZD.L","IDS.L","IGR.L","IHR.L","IMI.L","INPP.L","INVP.L","IP.L","IQG.L",
-    "ITX.L","JET2.L","JFJ.L","JII.L","JKX.L","JLG.L","JMG.L","JPE.L","JRS.L","JZCP.L",
-    "KBC.L","KDNC.L","KGF.L","KNOS.L","KWS.L","LAM.L","LAND.L","LBG.L","LCUS.L","LDG.L",
-    "LGB.L","LLPD.L","LMP.L","LPA.L","LRD.L","LSL.L","LTI.L","LXI.L","MAB.L","MARS.L",
-    "MBH.L","MCKS.L","MCR.L","MEGA.L","MERC.L","MFXS.L","MHN.L","MILS.L","MKS.L","MLPE.L",
-    "MMB.L","MNKS.L","MNTN.L","MOB.L","MRC.L","MRL.L","MRO.L","MSI.L","MTC.L","MTO.L",
-    "MTW.L","MXCT.L","MXLS.L","NAH.L","NBB.L","NCC.L","NCYF.L","NMC.L","NTG.L","NVGT.L",
-    "OCI.L","OCN.L","OML.L","ONT.L","OPG.L","ORCP.L","OXIG.L","PAGE.L","PCA.L","PCTN.L",
-    "PDG.L","PEEL.L","PEG.L","PEN.L","PFG.L","PFDO.L","PGIT.L","PHI.L","PIC.L","PINC.L",
-    "PLND.L","PLG.L","PMP.L","PNVD.L","POG.L","PPH.L","PRI.L","PRSR.L","PSH.L","PTG.L",
-    "PTEC.L","PXC.L","QQ.L","RACE.L","RCP.L","RDW.L","RGU.L","RKT.L","RMG.L","ROR.L",
-    "RPS.L","RQI.L","RSTR.L","SAFE.L","SBRY.L","SDY.L","SEE.L","SFR.L","SGRO.L","SHB.L",
-    "SHP.L","SINCE.L","SIR.L","SKG.L","SLA.L","SLPE.L","SMIF.L","SND.L","SNWS.L","SOM.L",
-    "SPH.L","SPI.L","SPIT.L","SQZ.L","SRSP.L","SSE.L","STAF.L","STOB.L","STS.L","SUP.L",
-    "SUPR.L","SVE.L","SXS.L","SYNT.L","TATE.L","TCAP.L","TCG.L","TET.L","TIG.L","TLW.L",
-    "TMPL.L","TRI.L","TRN.L","TRS.L","TUI.L","TWD.L","TYMN.L","UCG.L","UEM.L","ULE.L",
-    "UNOG.L","UTG.L","UTV.L","VCT.L","VNET.L","VNT.L","VSVS.L","VTU.L","WAND.L","WEB.L",
-    "WEIR.L","WHR.L","WINV.L","WIX.L","WKP.L","WMH.L","WPP.L","WTB.L","XAR.L","XPS.L",
-    "YCA.L","ZTF.L",
-]
-
-# FTSE 350 = FTSE 100 + FTSE 250
-FTSE350 = list(dict.fromkeys(FTSE100 + FTSE250))
-
-# Add FTSE 250 sector assignments (approximate)
-FTSE250_SECTOR_MAP = {
-    "JET2.L":"XLY","EZJ.L":"XLY","TUI.L":"XLY","BOO.L":"XLY","FRAS.L":"XLY",
-    "GYM.L":"XLY","GAW.L":"XLY","KGF.L":"XLY","MKS.L":"XLY","SBRY.L":"XLP",
-    "IMI.L":"XLI","WEIR.L":"XLI","GKN.L":"XLI","ROR.L":"XLI","MTO.L":"XLI",
-    "TRN.L":"XLI","CHG.L":"XLV","CVS.L":"XLV","HIK.L":"XLV","NMC.L":"XLV",
-    "CMCX.L":"XLC","IDS.L":"XLC","WMH.L":"XLC","PAGE.L":"XLC",
-    "DLG.L":"XLF","LBG.L":"XLF","AJB.L":"XLF","PFG.L":"XLF","IG.L":"XLF",
-    "INVP.L":"XLF","TCAP.L":"XLF","SLA.L":"XLF","JMG.L":"XLF",
-    "POG.L":"XLB","CEY.L":"XLB","PEN.L":"XLB","CNE.L":"XLE","TLW.L":"XLE",
-    "GBG.L":"XLK","DARK.L":"XLK","CTEC.L":"XLK","ESNT.L":"XLK","NCC.L":"XLK",
-    "SGRO.L":"XLRE","LXI.L":"XLRE","SUPR.L":"XLRE","LAND.L":"XLRE",
-    "HICL.L":"XLU","INPP.L":"XLU","TRIG.L":"XLU",
-    "GRG.L":"XLP","ABF.L":"XLP","TATE.L":"XLP",
-}
-
-# Merge FTSE sector maps
-FTSE_SECTOR_MAP.update(FTSE250_SECTOR_MAP)
+# ── FTSE 100 ──────────────────────────────────────────────────────────────────
 
 FTSE100 = [
     "SHEL.L","AZN.L","HSBA.L","ULVR.L","BP.L","RIO.L","GSK.L","BATS.L",
@@ -112,7 +57,42 @@ FTSE100 = [
     "STAN.L","STJ.L","TATE.L","TUI.L","UU.L","WPP.L","WTB.L",
 ]
 
+# ── FTSE 250 ──────────────────────────────────────────────────────────────────
+
+FTSE250 = [
+    "3IN.L","AEW.L","AGR.L","AJB.L","ANIC.L","APAX.L","ATG.L","ATM.L",
+    "ATST.L","AWE.L","BBY.L","BCPT.L","BME.L","BMS.L","BNKR.L","BOO.L",
+    "BOWL.L","BRW.L","BYG.L","CAL.L","CBOX.L","CEY.L","CHG.L","CLDN.L",
+    "CMCX.L","CNE.L","CTEC.L","CVS.L","CWK.L","DARK.L","DCG.L","DKG.L",
+    "DLG.L","DOCS.L","DRX.L","DSG.L","DWF.L","EMG.L","ERM.L","ESNT.L",
+    "EWI.L","EZJ.L","FCIT.L","FGP.L","FLT.L","FRAS.L","GAW.L","GBG.L",
+    "GEM.L","GENL.L","GLE.L","GMG.L","GNS.L","GRG.L","GSS.L","GYM.L",
+    "HAS.L","HICL.L","HIG.L","HOME.L","HRI.L","HSL.L","HWDN.L","IDS.L",
+    "IGR.L","IMI.L","INPP.L","INVP.L","IP.L","IQG.L","JET2.L","JMG.L",
+    "JPE.L","KBC.L","KGF.L","KWS.L","LAM.L","LBG.L","LDG.L","LGB.L",
+    "LMP.L","LSL.L","LXI.L","MAB.L","MCR.L","MEGA.L","MERC.L","MHN.L",
+    "MILS.L","MLPE.L","MMB.L","MNKS.L","MOB.L","MRC.L","MRL.L","MSI.L",
+    "MTC.L","MTO.L","MTW.L","NAH.L","NCC.L","NCYF.L","NTG.L","OCI.L",
+    "OCN.L","OML.L","ONT.L","PAGE.L","PCA.L","PCTN.L","PDG.L","PEG.L",
+    "PFG.L","PGIT.L","PHI.L","PIC.L","PLND.L","PLG.L","PMP.L","POG.L",
+    "PPH.L","PRI.L","PRSR.L","PSH.L","PTEC.L","QQ.L","RCP.L","RDW.L",
+    "RGU.L","RMG.L","ROR.L","RPS.L","SAFE.L","SDY.L","SEE.L","SFR.L",
+    "SHP.L","SIR.L","SKG.L","SLPE.L","SMIF.L","SND.L","SNWS.L","SOM.L",
+    "SPH.L","SPI.L","SQZ.L","STOB.L","STS.L","SUP.L","SUPR.L","SVE.L",
+    "SXS.L","TCAP.L","TCG.L","TET.L","TIG.L","TLW.L","TMPL.L","TRI.L",
+    "TRN.L","TRS.L","TWD.L","UCG.L","UEM.L","UTG.L","VCT.L","VSVS.L",
+    "VTU.L","WEIR.L","WHR.L","WIX.L","WKP.L","WMH.L","XAR.L","XPS.L",
+    "YCA.L","ZTF.L",
+]
+
+# ── FTSE 350 = 100 + 250 ──────────────────────────────────────────────────────
+
+FTSE350 = list(dict.fromkeys(FTSE100 + FTSE250))
+
+# ── FTSE SECTOR MAP ───────────────────────────────────────────────────────────
+
 FTSE_SECTOR_MAP = {
+    # FTSE 100
     "SHEL.L":"XLE","BP.L":"XLE","MRO.L":"XLE",
     "RIO.L":"XLB","GLEN.L":"XLB","ANTO.L":"XLB","FRES.L":"XLB","AAL.L":"XLB",
     "HSBA.L":"XLF","BARC.L":"XLF","LLOY.L":"XLF","NWG.L":"XLF","STAN.L":"XLF",
@@ -130,7 +110,25 @@ FTSE_SECTOR_MAP = {
     "NG.L":"XLU","SSE.L":"XLU","SVT.L":"XLU","UU.L":"XLU",
     "VOD.L":"XLC","BT-A.L":"XLC","WPP.L":"XLC",
     "LAND.L":"XLRE","SGRO.L":"XLRE","HMSO.L":"XLRE",
+    # FTSE 250
+    "JET2.L":"XLY","EZJ.L":"XLY","BOO.L":"XLY","FRAS.L":"XLY","GYM.L":"XLY",
+    "GAW.L":"XLY","KGF.L":"XLY","HOME.L":"XLY","DOCS.L":"XLY","MAB.L":"XLY",
+    "IMI.L":"XLI","WEIR.L":"XLI","MTO.L":"XLI","TRN.L":"XLI","ROR.L":"XLI",
+    "SXS.L":"XLI","HWDN.L":"XLI","GKN.L":"XLI","ATM.L":"XLI","AWE.L":"XLI",
+    "CHG.L":"XLV","CVS.L":"XLV","NMC.L":"XLV","SHP.L":"XLV","HRI.L":"XLV",
+    "CMCX.L":"XLC","IDS.L":"XLC","WMH.L":"XLC","PAGE.L":"XLC","QQ.L":"XLC",
+    "DLG.L":"XLF","LBG.L":"XLF","AJB.L":"XLF","PFG.L":"XLF","INVP.L":"XLF",
+    "TCAP.L":"XLF","JMG.L":"XLF","MCR.L":"XLF","LSL.L":"XLF","PRI.L":"XLF",
+    "POG.L":"XLB","CEY.L":"XLB","PEG.L":"XLB","SIR.L":"XLB",
+    "CNE.L":"XLE","TLW.L":"XLE","EMG.L":"XLE",
+    "GBG.L":"XLK","DARK.L":"XLK","CTEC.L":"XLK","ESNT.L":"XLK","NCC.L":"XLK",
+    "PTEC.L":"XLK","DSG.L":"XLK","EWI.L":"XLK","CMCX.L":"XLK",
+    "SGRO.L":"XLRE","LXI.L":"XLRE","SUPR.L":"XLRE","PRSR.L":"XLRE",
+    "HICL.L":"XLU","INPP.L":"XLU","TRIG.L":"XLU","NCYF.L":"XLU",
+    "GRG.L":"XLP","SNWS.L":"XLP","PMP.L":"XLP",
 }
+
+# ── S&P 500 ───────────────────────────────────────────────────────────────────
 
 SP500 = [
     "AAPL","MSFT","NVDA","AMZN","META","GOOGL","GOOG","BRK-B","TSLA","LLY",
@@ -155,6 +153,8 @@ SP500 = [
     "JBHT","ODFL","EXC","AEP","XEL","WEC","DTE","AWK","AMT","CCI",
     "EQIX","DLR","PSA","NEM","FCX","SCCO","PPG",
 ]
+
+# ── S&P SECTOR MAP ────────────────────────────────────────────────────────────
 
 SECTOR_MAP = {
     "AAPL":"XLK","MSFT":"XLK","NVDA":"XLK","GOOGL":"XLC","GOOG":"XLC",
@@ -214,8 +214,7 @@ with st.sidebar:
     user_input = st.text_input(
         "Watchlist",
         value="SHEL.L,AZN.L,HSBA.L,BP.L,LLOY.L,BARC.L,GSK.L,ULVR.L,AAPL,MSFT,NVDA,JPM",
-        key="sidebar_watchlist"
-    )
+        key="sidebar_watchlist")
     WATCHLIST = [t.strip().upper() for t in user_input.split(",") if t.strip()]
 
     st.markdown("---")
@@ -223,13 +222,11 @@ with st.sidebar:
     quality = st.select_slider(
         "Win probability required",
         options=["Moderate (≥55%)", "Strong (≥60%)", "Very Strong (≥70%)"],
-        value="Strong (≥60%)"
-    )
+        value="Strong (≥60%)")
     MIN_WIN_PROB = {
-        "Moderate (≥55%)": 0.55,
-        "Strong (≥60%)":   0.60,
-        "Very Strong (≥70%)": 0.70
-    }[quality]
+        "Moderate (≥55%)":0.55,
+        "Strong (≥60%)":0.60,
+        "Very Strong (≥70%)":0.70}[quality]
 
     st.markdown("---")
     with st.expander("ℹ️ How it works"):
@@ -241,8 +238,7 @@ with st.sidebar:
             "**L4** Kelly position sizing (30%)\n"
             "**L5** Monte Carlo downside check\n\n"
             "One control is exposed because all other "
-            "parameters are fixed at Sharpe-optimal values."
-        )
+            "parameters are fixed at Sharpe-optimal values.")
     st.button("🔄 Refresh", use_container_width=True, type="primary")
     st.caption(f"Updated: {datetime.now().strftime('%H:%M:%S')}")
 
@@ -273,17 +269,17 @@ def fetch_data(tickers_key, days=420):
 def compute_dms(c, v, vix_s, spy_s, sc, t10, t5):
     avg_vol   = v.rolling(20).mean().iloc[-1]
     vol_ratio = v.iloc[-1]/avg_vol if avg_vol > 0 else 1.0
-    pv        = normalise((c.iloc[-1]-c.iloc[-2])/c.iloc[-2]*vol_ratio, -0.05, 0.05)
+    pv        = normalise((c.iloc[-1]-c.iloc[-2])/c.iloc[-2]*vol_ratio,-0.05,0.05)
     vix_score = 100 - normalise(vix_s.iloc[-1], 10, 40)
     hi=c.rolling(2).max(); lo=c.rolling(2).min()
     atr_pct   = ((hi-lo)/c).rolling(14).mean().iloc[-1]*100
-    vlt       = (vix_score + (100-normalise(atr_pct, 0.5, 5.0))) / 2
-    brd       = normalise(spy_s.iloc[-1]/spy_s.rolling(50).mean().iloc[-1], 0.90, 1.10)
-    try:    yld = normalise(t10.iloc[-1]-t5.iloc[-1], -0.5, 2.0)
+    vlt       = (vix_score + (100-normalise(atr_pct,0.5,5.0))) / 2
+    brd       = normalise(spy_s.iloc[-1]/spy_s.rolling(50).mean().iloc[-1],0.90,1.10)
+    try:    yld = normalise(t10.iloc[-1]-t5.iloc[-1],-0.5,2.0)
     except: yld = 50.0
     w  = min(20, len(c)-1)
     sr = (c.iloc[-1]/c.iloc[-w])-1; er=(sc.iloc[-1]/sc.iloc[-w])-1
-    rs = normalise((1+sr)/((1+er) if (1+er)!=0 else 1), 0.70, 1.30)
+    rs = normalise((1+sr)/((1+er) if (1+er)!=0 else 1),0.70,1.30)
     return round(WEIGHTS["price_vol"]*pv + WEIGHTS["sector_rs"]*rs +
                  WEIGHTS["breadth"]*brd  + WEIGHTS["volatility"]*vlt +
                  WEIGHTS["yield_curve"]*yld, 2)
@@ -316,7 +312,7 @@ def zscore_entry(c, window=20):
 def kelly_size(win_prob, avg_win=0.03, avg_loss=0.015):
     if avg_loss==0: return 0.0
     b=avg_win/avg_loss; q=1-win_prob
-    return round(min(max((b*win_prob-q)/b*KELLY_FRAC, 0), MAX_POS), 4)
+    return round(min(max((b*win_prob-q)/b*KELLY_FRAC,0),MAX_POS),4)
 
 def monte_carlo(c, kelly, capital=100000, horizon=10):
     ret   = c.pct_change().dropna().values
@@ -324,15 +320,15 @@ def monte_carlo(c, kelly, capital=100000, horizon=10):
     oc    = np.array([
         (entry*np.prod(1+np.random.choice(ret,size=horizon,replace=True))-entry)*shares
         for _ in range(MC_N)])
-    p25_floor = -abs(np.percentile(oc,50))
+    p25f  = -abs(np.percentile(oc,50))
     return (round(float(np.percentile(oc,25)),0),
             round(float(np.percentile(oc,50)),0),
             round(float(np.percentile(oc,75)),0),
-            round(float((oc<0).mean()),3), oc, p25_floor)
+            round(float((oc<0).mean()),3), oc, p25f)
 
 def evaluate(ticker, c, v, vix_s, spy_s, sc, t10, t5):
     dms              = compute_dms(c,v,vix_s,spy_s,sc,t10,t5)
-    win_prob, n_samp = bayesian_win_prob(c, dms)
+    win_prob, n_samp = bayesian_win_prob(c,dms)
     regime,trd,exp_ret,vix_now,spy_now,spy_200 = classify_regime(vix_s,spy_s)
     z                = zscore_entry(c)
     kelly            = kelly_size(win_prob)
@@ -340,7 +336,7 @@ def evaluate(ticker, c, v, vix_s, spy_s, sc, t10, t5):
                                      else (0,0,0,1.0,np.array([0]),0))
     l1=win_prob>=MIN_WIN_PROB; l2=trd; l3=MIN_Z<=z<=MAX_Z
     l4=kelly>0.01;             l5=p25>p25f
-    all_pass = l1 and l2 and l3 and l4 and l5
+    all_pass=l1 and l2 and l3 and l4 and l5
     atr=(c.rolling(2).max()-c.rolling(2).min()).rolling(14).mean().iloc[-1]
     return {
         "Ticker":ticker,"Price":round(float(c.iloc[-1]),2),
@@ -427,13 +423,13 @@ tab0,tab1,tab2,tab3,tab4,tab5 = st.tabs([
 
 with tab0:
     st.subheader("🔭 Universe Screener")
-    st.caption("Scan FTSE 100 or S&P 500 through pre-filters then the 5-layer model.")
+    st.caption("Scan FTSE 350, FTSE 100, FTSE 250 or S&P 500 through pre-filters "
+               "then the 5-layer model.")
 
     sc1,sc2,sc3 = st.columns(3)
     with sc1:
         universe_choice = st.selectbox("Universe", [
-            "FTSE 350 (100+250)","FTSE 100","FTSE 250",
-            "S&P 500",
+            "FTSE 350 (100+250)","FTSE 100","FTSE 250","S&P 500",
             "FTSE — Financials","FTSE — Healthcare","FTSE — Energy",
             "FTSE — Technology","FTSE — Consumer",
             "S&P — Technology (XLK)","S&P — Financials (XLF)",
@@ -442,10 +438,10 @@ with tab0:
             "Custom list"
         ], key="screener_universe")
     with sc2:
-        min_vol_m    = st.slider("Min avg volume (M/day)", 0.1, 5.0, 0.5, 0.1,
+        min_vol_m    = st.slider("Min avg volume (M/day)",0.1,5.0,0.5,0.1,
                                  key="screener_vol")
     with sc3:
-        screen_top_n = st.slider("Show top N results", 3, 20, 10,
+        screen_top_n = st.slider("Show top N results",3,20,10,
                                  key="screener_topn")
 
     if universe_choice == "Custom list":
@@ -462,15 +458,15 @@ with tab0:
     elif universe_choice == "S&P 500":
         screen_univ  = list(dict.fromkeys(SP500))
     elif universe_choice.startswith("FTSE —"):
-        label   = universe_choice.replace("FTSE — ","").strip()
-        etf_map = {"Financials":"XLF","Healthcare":"XLV","Energy":"XLE",
-                   "Technology":"XLK","Consumer":"XLP"}
-        etf         = etf_map.get(label,"XLF")
-        screen_univ = [t for t,s in FTSE_SECTOR_MAP.items() if s==etf]
+        label        = universe_choice.replace("FTSE — ","").strip()
+        etf_map      = {"Financials":"XLF","Healthcare":"XLV","Energy":"XLE",
+                        "Technology":"XLK","Consumer":"XLP"}
+        etf          = etf_map.get(label,"XLF")
+        screen_univ  = [t for t,s in FTSE_SECTOR_MAP.items() if s==etf]
     else:
-        parts       = universe_choice.split("(")
-        etf         = parts[1].replace(")","").strip() if len(parts)>1 else "XLK"
-        screen_univ = [t for t,s in SECTOR_MAP.items() if s==etf]
+        parts        = universe_choice.split("(")
+        etf          = parts[1].replace(")","").strip() if len(parts)>1 else "XLK"
+        screen_univ  = [t for t,s in SECTOR_MAP.items() if s==etf]
 
     is_ftse     = any(t.endswith(".L") for t in screen_univ[:5])
     screen_univ = list(dict.fromkeys(screen_univ))
@@ -479,7 +475,7 @@ with tab0:
             f"**{len(screen_univ)} stocks** → pre-filter → 5-layer model → "
             f"top {screen_top_n}  |  Signal quality: **{quality}**")
 
-    if st.button("🔭 Run Screener", type="primary", use_container_width=True,
+    if st.button("🔭 Run Screener",type="primary",use_container_width=True,
                  key="run_screener_btn"):
         prog = st.progress(0, text="Fetching data...")
 
@@ -626,7 +622,7 @@ with tab1:
                 f'padding:8px 12px;border-radius:6px;">'
                 f'<div style="color:white;font-weight:700;font-size:16px">{r["Ticker"]}</div>'
                 f'<div style="color:#888;font-size:11px">${r["Price"]:.2f} · {r["Sector"]}</div>'
-                f'</div>', unsafe_allow_html=True)
+                f'</div>',unsafe_allow_html=True)
         with c1:
             col="#00e676" if r["l1"] else "#ff1744"
             st.markdown(
@@ -779,18 +775,14 @@ with tab2:
 
 with tab3:
     st.subheader("🎲 Monte Carlo Explorer")
-    st.caption("Simulate trade outcomes at different position sizes and holding periods.")
-
     mc_ticker = st.selectbox("Stock",[r["Ticker"] for r in results],key="mc_sel")
     mc_r      = next(x for x in results if x["Ticker"]==mc_ticker)
     mc_cls    = mc_r["close_s"]
 
     mc1c,mc2c,mc3c = st.columns(3)
-    with mc1c: mc_capital = st.number_input("Portfolio ($)",value=100000,
-                                             step=10000,key="mc_cap")
-    with mc2c: mc_pos_pct = st.slider("Position %",1,25,
-                                       max(1,int(mc_r["kelly"]*100)),key="mc_pos")
-    with mc3c: mc_horizon = st.slider("Hold days",5,60,15,key="mc_hor")
+    with mc1c: mc_capital=st.number_input("Portfolio ($)",value=100000,step=10000,key="mc_cap")
+    with mc2c: mc_pos_pct=st.slider("Position %",1,25,max(1,int(mc_r["kelly"]*100)),key="mc_pos")
+    with mc3c: mc_horizon=st.slider("Hold days",5,60,15,key="mc_hor")
 
     if st.button("▶️ Run simulation",type="primary",key="mc_run"):
         ret_mc=mc_cls.pct_change().dropna().values
@@ -833,19 +825,17 @@ with tab4:
 
     bc1,bc2,bc3 = st.columns(3)
     with bc1:
-        bt_tick = st.text_input("Ticker",value="SHEL.L",key="bt_ticker_input").upper()
+        bt_tick=st.text_input("Ticker",value="SHEL.L",key="bt_ticker_input").upper()
     with bc2:
-        bt_period = st.selectbox("Period",
-            ["5 years","3 years","2 years","1 year","Custom"],
-            index=0,key="bt_period")
+        bt_period=st.selectbox("Period",
+            ["5 years","3 years","2 years","1 year","Custom"],index=0,key="bt_period")
     with bc3:
-        bt_cap = st.number_input("Capital ($)",value=100000,step=10000,key="bt_cap")
+        bt_cap=st.number_input("Capital ($)",value=100000,step=10000,key="bt_cap")
 
     if bt_period=="Custom":
         cc1,cc2=st.columns(2)
         with cc1: bt_start=st.date_input("Start",
-                            value=datetime.today()-timedelta(days=5*365),
-                            key="bt_start")
+                            value=datetime.today()-timedelta(days=5*365),key="bt_start")
         with cc2: bt_end=st.date_input("End",value=datetime.today(),key="bt_end")
     else:
         years=int(bt_period.split()[0])
@@ -856,28 +846,24 @@ with tab4:
             f"{bt_start.strftime('%d %b %Y') if hasattr(bt_start,'strftime') else bt_start}"
             f" → today · {bt_period} · {quality}")
 
-    # ── Slippage & cost controls ──
+    # ── Slippage controls ──
     sl1,sl2,sl3 = st.columns(3)
     with sl1:
-        slippage_pct = st.slider(
-            "Slippage per trade (%)", 0.0, 0.5, 0.10, 0.01,
-            key="bt_slippage",
-            help="Price impact on entry and exit. 0.10% is realistic for FTSE 100 / S&P 500.")
+        slippage_pct=st.slider("Slippage per trade (%)",0.0,0.5,0.10,0.01,
+                               key="bt_slippage",
+                               help="0.10% realistic for FTSE 100 / S&P 500")
     with sl2:
-        commission = st.number_input(
-            "Commission per trade ($)", 0.0, 30.0, 5.0, 1.0,
-            key="bt_commission",
-            help="Fixed broker fee per trade. Use 0 for commission-free brokers.")
+        commission=st.number_input("Commission per trade ($)",0.0,30.0,5.0,1.0,
+                                   key="bt_commission",
+                                   help="Set 0 for commission-free brokers")
     with sl3:
-        stop_slip_pct = st.slider(
-            "Stop-loss slippage (%)", 0.0, 1.0, 0.20, 0.05,
-            key="bt_stopslip",
-            help="Extra slippage on stop-loss fills in fast markets. Usually 2× normal slippage.")
+        stop_slip_pct=st.slider("Stop-loss slippage (%)",0.0,1.0,0.20,0.05,
+                                key="bt_stopslip",
+                                help="Extra slippage on stop fills in fast markets")
 
-    if slippage_pct > 0 or commission > 0:
-        st.info(f"Round-trip cost per trade: "
-                f"**{slippage_pct*2:.2f}% slippage + ${commission*2:.0f} commission**. "
-                f"On a $1,000 position that's ~${1000*slippage_pct*2 + commission*2:.0f} total.")
+    if slippage_pct>0 or commission>0:
+        st.info(f"Round-trip cost: **{slippage_pct*2:.2f}% slippage + "
+                f"${commission*2:.0f} commission** per trade.")
 
     @st.cache_data(ttl=600)
     def backtest_stat(ticker,start_str,capital,win_prob_key,
@@ -890,15 +876,14 @@ with tab4:
         vix=get_col(raw,"^VIX","Close"); spy=get_col(raw,"SPY","Close")
         sc=get_col(raw,get_sector(ticker),"Close")
         t10=get_col(raw,"^TNX","Close"); t5=get_col(raw,"^FVX","Close")
-        if len(c)<60: return None,None,None,None
+        if len(c)<60: return None,None,None,None,0
         idx=c.index
         vix=vix.reindex(idx,method="ffill"); spy=spy.reindex(idx,method="ffill")
         sc=sc.reindex(idx,method="ffill");   t10=t10.reindex(idx,method="ffill")
         t5=t5.reindex(idx,method="ffill")
         atr_s=(c.rolling(2).max()-c.rolling(2).min()).rolling(14).mean()
         cap=float(capital); pos=0; entry_px=0.0; stop_px=0.0; highest=0.0
-        trades=[]; equity=[]; wp_list=[]
-        total_costs=0.0
+        trades=[]; equity=[]; wp_list=[]; total_costs=0.0
 
         for i in range(len(c)):
             price=c.iloc[i]; date=idx[i]
@@ -922,71 +907,58 @@ with tab4:
                 highest=max(price,highest)
                 stop_px=max(stop_px,highest-2.0*atr)
 
-            # ── Stop-loss with slippage ──
+            # Stop-loss with slippage
             if pos>0 and price<=stop_px:
-                # Stop fills at stop price less extra stop slippage
-                fill_px  = stop_px * (1 - stop_slip)
-                cost     = comm + fill_px*pos*slip_pct
-                proceeds = fill_px*pos - cost
-                pnl      = proceeds - entry_px*pos
-                cap     += proceeds
-                total_costs += cost
-                trades.append({
-                    "Date":date,"Action":"STOP",
-                    "Price":round(fill_px,2),"Shares":pos,
-                    "PnL":round(pnl,2),"Costs":round(cost,2)})
-                pos=0
+                fill_px=stop_px*(1-stop_slip)
+                cost=comm+fill_px*pos*slip_pct
+                proceeds=fill_px*pos-cost
+                pnl=proceeds-entry_px*pos
+                cap+=proceeds; total_costs+=cost
+                trades.append({"Date":date,"Action":"STOP",
+                                "Price":round(fill_px,2),"Shares":pos,
+                                "PnL":round(pnl,2),"Costs":round(cost,2)}); pos=0
 
             all_pass=(wp>=win_prob_key and trd and MIN_Z<=z<=MAX_Z and kel>0.01)
 
             if all_pass and pos==0:
-                # ── Entry with slippage — pay ask (price + slippage) ──
-                fill_px  = price * (1 + slip_pct)
-                shares   = int(cap*kel/fill_px)
+                # Entry with slippage
+                fill_px=price*(1+slip_pct)
+                shares=int(cap*kel/fill_px)
                 if shares>0:
-                    cost     = comm + fill_px*shares*slip_pct
-                    cap     -= fill_px*shares + cost
-                    pos      = shares
-                    entry_px = fill_px
-                    highest  = fill_px
-                    stop_px  = fill_px - 1.5*atr
-                    total_costs += cost
-                    trades.append({
-                        "Date":date,"Action":"BUY",
-                        "Price":round(fill_px,2),"Shares":shares,
-                        "PnL":0,"Costs":round(cost,2)})
-
+                    cost=comm+fill_px*shares*slip_pct
+                    cap-=fill_px*shares+cost
+                    pos=shares; entry_px=fill_px
+                    highest=fill_px; stop_px=fill_px-1.5*atr
+                    total_costs+=cost
+                    trades.append({"Date":date,"Action":"BUY",
+                                   "Price":round(fill_px,2),"Shares":shares,
+                                   "PnL":0,"Costs":round(cost,2)})
             elif wp<0.45 and pos>0:
-                # ── Exit with slippage — receive bid (price - slippage) ──
-                fill_px  = price * (1 - slip_pct)
-                cost     = comm + fill_px*pos*slip_pct
-                proceeds = fill_px*pos - cost
-                pnl      = proceeds - entry_px*pos
-                cap     += proceeds
-                total_costs += cost
-                trades.append({
-                    "Date":date,"Action":"SELL",
-                    "Price":round(fill_px,2),"Shares":pos,
-                    "PnL":round(pnl,2),"Costs":round(cost,2)})
-                pos=0
+                # Exit with slippage
+                fill_px=price*(1-slip_pct)
+                cost=comm+fill_px*pos*slip_pct
+                proceeds=fill_px*pos-cost
+                pnl=proceeds-entry_px*pos
+                cap+=proceeds; total_costs+=cost
+                trades.append({"Date":date,"Action":"SELL",
+                                "Price":round(fill_px,2),"Shares":pos,
+                                "PnL":round(pnl,2),"Costs":round(cost,2)}); pos=0
 
             equity.append(cap+pos*price)
 
         if pos>0:
-            fill_px  = c.iloc[-1]*(1-slip_pct)
-            cost     = comm + fill_px*pos*slip_pct
-            proceeds = fill_px*pos - cost
-            pnl      = proceeds - entry_px*pos
-            cap     += proceeds
-            total_costs += cost
-            trades.append({
-                "Date":idx[-1],"Action":"CLOSE",
-                "Price":round(fill_px,2),"Shares":pos,
-                "PnL":round(pnl,2),"Costs":round(cost,2)})
+            fill_px=c.iloc[-1]*(1-slip_pct)
+            cost=comm+fill_px*pos*slip_pct
+            proceeds=fill_px*pos-cost
+            pnl=proceeds-entry_px*pos
+            cap+=proceeds; total_costs+=cost
+            trades.append({"Date":idx[-1],"Action":"CLOSE",
+                            "Price":round(fill_px,2),"Shares":pos,
+                            "PnL":round(pnl,2),"Costs":round(cost,2)})
 
-        tdf = (pd.DataFrame(trades) if trades else
-               pd.DataFrame(columns=["Date","Action","Price","Shares","PnL","Costs"]))
-        return tdf, pd.Series(equity,index=idx), pd.Series(wp_list,index=idx), c, total_costs
+        tdf=(pd.DataFrame(trades) if trades else
+             pd.DataFrame(columns=["Date","Action","Price","Shares","PnL","Costs"]))
+        return tdf,pd.Series(equity,index=idx),pd.Series(wp_list,index=idx),c,total_costs
 
     if st.button("▶️ Run backtest",type="primary",key="bt_run"):
         with st.spinner(f"Backtesting {bt_tick} — {bt_period} (with slippage)..."):
@@ -1006,20 +978,17 @@ with tab4:
             cl=tdf[tdf["Action"].isin(["SELL","STOP","CLOSE"])]
             n=len(cl); wi=cl[cl["PnL"]>0]; lo=cl[cl["PnL"]<=0]
             hr=len(wi)/n*100 if n>0 else 0
-            aw=wi["PnL"].mean() if len(wi)>0 else 0
-            al=lo["PnL"].mean() if len(lo)>0 else 0
-            pf=abs(aw/al) if al!=0 else 0
 
             m1,m2,m3,m4,m5,m6,m7=st.columns(7)
-            m1.metric("Total return", f"{tr:.1f}%",delta=f"{tr-bh:+.1f}% vs B&H")
-            m2.metric("Buy & hold",   f"{bh:.1f}%")
-            m3.metric("Sharpe",       round(sh,2),
+            m1.metric("Total return",f"{tr:.1f}%",delta=f"{tr-bh:+.1f}% vs B&H")
+            m2.metric("Buy & hold", f"{bh:.1f}%")
+            m3.metric("Sharpe",     round(sh,2),
                       delta="Good ✅" if sh>=1 else "Weak",
                       delta_color="normal" if sh>=1 else "inverse")
-            m4.metric("Max drawdown", f"{dd:.1f}%")
-            m5.metric("Win rate",     f"{hr:.1f}%")
-            m6.metric("Final value",  f"${eq_s.iloc[-1]:,.0f}")
-            m7.metric("Total costs",  f"${total_costs:,.0f}",
+            m4.metric("Max drawdown",f"{dd:.1f}%")
+            m5.metric("Win rate",   f"{hr:.1f}%")
+            m6.metric("Final value",f"${eq_s.iloc[-1]:,.0f}")
+            m7.metric("Total costs",f"${total_costs:,.0f}",
                       delta=f"{total_costs/bt_cap*100:.1f}% of capital",
                       delta_color="inverse")
 
@@ -1080,8 +1049,7 @@ with tab4:
                     tdf.style.map(ca,subset=["Action"]).map(cp,subset=["PnL"]),
                     use_container_width=True,height=240)
                 st.download_button("⬇️ Download trades",tdf.to_csv(index=False),
-                                   f"trades_{bt_tick}.csv","text/csv",
-                                   key="bt_download")
+                                   f"trades_{bt_tick}.csv","text/csv",key="bt_download")
 
 # ── TAB 5: POSITIONS ──────────────────────────────────────────────────────────
 
