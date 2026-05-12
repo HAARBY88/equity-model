@@ -1,7 +1,5 @@
 """
 Equity Quant Dashboard — Simplified High-Sharpe Model
-One meaningful control: win probability threshold
-Fixed internal parameters optimised for Sharpe ratio
 Run with: streamlit run dashboard.py
 Dependencies: pip install yfinance pandas numpy streamlit plotly
 """
@@ -26,21 +24,17 @@ st.markdown("""
         background: linear-gradient(90deg, #1a237e, #283593);
         padding: 18px 24px; border-radius: 10px; margin-bottom: 20px;
     }
-    .stat-card {
-        background: #1c2030; border-radius: 8px; padding: 14px 16px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # ── FIXED INTERNAL PARAMETERS ─────────────────────────────────────────────────
-# These are set for optimal Sharpe — do not expose as user controls
 
-KELLY_FRAC   = 0.30    # 30% Kelly — smooth equity curve, target Sharpe 1.2+
-MAX_POS      = 0.12    # hard cap 12% per position
-MC_N         = 1000    # Monte Carlo runs
-REGIME_VIX   = 25      # VIX ceiling for bull regime
-MIN_Z        = 0.3     # loose lower bound — not exposed to user
-MAX_Z        = 3.0     # loose upper bound — not exposed to user
+KELLY_FRAC  = 0.30
+MAX_POS     = 0.12
+MC_N        = 1000
+REGIME_VIX  = 25
+MIN_Z       = 0.3
+MAX_Z       = 3.0
 
 WEIGHTS = {
     "price_vol":0.30,"sector_rs":0.25,"breadth":0.20,
@@ -59,8 +53,8 @@ FTSE100 = [
     "AV.L","AVV.L","BA.L","BEZ.L","BKG.L","BNZL.L","BRBY.L","BT-A.L",
     "CCH.L","CCL.L","CNA.L","CPG.L","CRDA.L","DLN.L","DPLM.L","EDV.L",
     "FRES.L","GLEN.L","HLN.L","HMSO.L","IAG.L","ITRK.L","KIE.L","LGEN.L",
-    "MRO.L","NXT.L","PHNX.L","RKT.L","SBRY.L","SGRO.L","SJP.L","SLA.L",
-    "SN.L","STAN.L","STJ.L","TATE.L","TSCO.L","TUI.L","UU.L","WPP.L","WTB.L",
+    "MRO.L","NXT.L","PHNX.L","SBRY.L","SGRO.L","SJP.L","SLA.L","SN.L",
+    "STAN.L","STJ.L","TATE.L","TUI.L","UU.L","WPP.L","WTB.L",
 ]
 
 FTSE_SECTOR_MAP = {
@@ -104,7 +98,7 @@ SP500 = [
     "DIS","CMCSA","CHTR","TTWO","EA","EBAY","ETSY","YUM","QSR","DRI",
     "GIS","MMM","PH","ROK","LMT","NOC","GD","LHX","UPS","XPO",
     "JBHT","ODFL","EXC","AEP","XEL","WEC","DTE","AWK","AMT","CCI",
-    "EQIX","DLR","PSA","NEM","FCX","SCCO","PPG","SHW","ECL","APD",
+    "EQIX","DLR","PSA","NEM","FCX","SCCO","PPG",
 ]
 
 SECTOR_MAP = {
@@ -158,13 +152,16 @@ SECTOR_NAMES = {
     "XLU":"Utilities","XLB":"Materials","XLRE":"Real Estate",
 }
 
-# ── SIDEBAR — ONE SLIDER ──────────────────────────────────────────────────────
+# ── SIDEBAR ───────────────────────────────────────────────────────────────────
 
 with st.sidebar:
     st.markdown("## ⚙️ Settings")
-    user_input = st.text_input("Watchlist",
-                               value="SHEL.L,AZN.L,HSBA.L,BP.L,LLOY.L,BARC.L,GSK.L,ULVR.L,AAPL,MSFT,NVDA,JPM")
-    WATCHLIST  = [t.strip().upper() for t in user_input.split(",") if t.strip()]
+    user_input = st.text_input(
+        "Watchlist",
+        value="SHEL.L,AZN.L,HSBA.L,BP.L,LLOY.L,BARC.L,GSK.L,ULVR.L,AAPL,MSFT,NVDA,JPM",
+        key="sidebar_watchlist"
+    )
+    WATCHLIST = [t.strip().upper() for t in user_input.split(",") if t.strip()]
 
     st.markdown("---")
     st.markdown("### Signal quality")
@@ -173,25 +170,24 @@ with st.sidebar:
         options=["Moderate (≥55%)", "Strong (≥60%)", "Very Strong (≥70%)"],
         value="Strong (≥60%)"
     )
-    MIN_WIN_PROB = {"Moderate (≥55%)":0.55,
-                    "Strong (≥60%)":0.60,
-                    "Very Strong (≥70%)":0.70}[quality]
+    MIN_WIN_PROB = {
+        "Moderate (≥55%)": 0.55,
+        "Strong (≥60%)":   0.60,
+        "Very Strong (≥70%)": 0.70
+    }[quality]
 
     st.markdown("---")
     with st.expander("ℹ️ How it works"):
         st.caption(
-            "The model runs 5 statistical layers internally:\n\n"
-            "**L1** Bayesian win probability from history\n"
+            "5 statistical layers run internally:\n\n"
+            "**L1** Bayesian win probability\n"
             "**L2** Market regime (Bull only)\n"
             "**L3** Z-score entry timing\n"
             "**L4** Kelly position sizing (30%)\n"
             "**L5** Monte Carlo downside check\n\n"
-            "Only one control is exposed because all other "
-            "parameters are fixed at values that maximise "
-            "Sharpe ratio. Adjusting them individually "
-            "risks over-fitting."
+            "One control is exposed because all other "
+            "parameters are fixed at Sharpe-optimal values."
         )
-
     st.button("🔄 Refresh", use_container_width=True, type="primary")
     st.caption(f"Updated: {datetime.now().strftime('%H:%M:%S')}")
 
@@ -251,9 +247,9 @@ def bayesian_win_prob(c, dms_now, window=20, horizon=10):
 def classify_regime(vix_s, spy_s):
     vix=vix_s.iloc[-1]; spy=spy_s.iloc[-1]
     spy200=spy_s.rolling(200).mean().iloc[-1]; above=spy>spy200
-    if above and vix<15:     return "Bull quiet",    True,  2.1, vix, spy, spy200
-    if above and vix<REGIME_VIX: return "Bull volatile",True, 0.8, vix, spy, spy200
-    if not above and vix<20: return "Bear quiet",    False,-0.3, vix, spy, spy200
+    if above and vix<15:          return "Bull quiet",    True,  2.1, vix, spy, spy200
+    if above and vix<REGIME_VIX:  return "Bull volatile", True,  0.8, vix, spy, spy200
+    if not above and vix<20:      return "Bear quiet",    False,-0.3, vix, spy, spy200
     return "Bear volatile", False, -2.4, vix, spy, spy200
 
 def zscore_entry(c, window=20):
@@ -273,7 +269,7 @@ def monte_carlo(c, kelly, capital=100000, horizon=10):
     oc    = np.array([
         (entry*np.prod(1+np.random.choice(ret,size=horizon,replace=True))-entry)*shares
         for _ in range(MC_N)])
-    p25_floor = -abs(np.percentile(oc,50))  # auto floor = median loss
+    p25_floor = -abs(np.percentile(oc,50))
     return (round(float(np.percentile(oc,25)),0),
             round(float(np.percentile(oc,50)),0),
             round(float(np.percentile(oc,75)),0),
@@ -285,35 +281,32 @@ def evaluate(ticker, c, v, vix_s, spy_s, sc, t10, t5):
     regime,trd,exp_ret,vix_now,spy_now,spy_200 = classify_regime(vix_s,spy_s)
     z                = zscore_entry(c)
     kelly            = kelly_size(win_prob)
-    p25,p50,p75,ploss,mc_oc,p25_floor = (monte_carlo(c,kelly) if kelly>0
-                                          else (0,0,0,1.0,np.array([0]),0))
-    l1 = win_prob >= MIN_WIN_PROB
-    l2 = trd
-    l3 = MIN_Z <= z <= MAX_Z
-    l4 = kelly > 0.01
-    l5 = p25 > p25_floor
+    p25,p50,p75,ploss,mc_oc,p25f = (monte_carlo(c,kelly) if kelly>0
+                                     else (0,0,0,1.0,np.array([0]),0))
+    l1=win_prob>=MIN_WIN_PROB; l2=trd; l3=MIN_Z<=z<=MAX_Z
+    l4=kelly>0.01;             l5=p25>p25f
     all_pass = l1 and l2 and l3 and l4 and l5
-    atr = (c.rolling(2).max()-c.rolling(2).min()).rolling(14).mean().iloc[-1]
+    atr=(c.rolling(2).max()-c.rolling(2).min()).rolling(14).mean().iloc[-1]
     return {
-        "Ticker":ticker, "Price":round(float(c.iloc[-1]),2),
-        "DMS":dms, "Sector":SECTOR_NAMES.get(get_sector(ticker),"—"),
-        "win_prob":win_prob, "n_samp":n_samp, "l1":l1,
-        "regime":regime, "exp_ret":exp_ret, "l2":l2,
-        "z":z, "l3":l3, "kelly":kelly, "l4":l4,
-        "p25":p25, "p50":p50, "p75":p75, "ploss":ploss, "l5":l5,
-        "all_pass":all_pass, "ev":p50,
+        "Ticker":ticker,"Price":round(float(c.iloc[-1]),2),
+        "DMS":dms,"Sector":SECTOR_NAMES.get(get_sector(ticker),"—"),
+        "win_prob":win_prob,"n_samp":n_samp,"l1":l1,
+        "regime":regime,"exp_ret":exp_ret,"l2":l2,
+        "z":z,"l3":l3,"kelly":kelly,"l4":l4,
+        "p25":p25,"p50":p50,"p75":p75,"ploss":ploss,"l5":l5,
+        "all_pass":all_pass,"ev":p50,
         "stop":round(float(c.iloc[-1])-1.5*float(atr),2),
         "trail":round(float(c.iloc[-1])-2.0*float(atr),2),
-        "close_s":c, "mc_outcomes":mc_oc,
-        "vix_now":vix_now, "spy_now":spy_now, "spy_200":spy_200,
+        "close_s":c,"mc_outcomes":mc_oc,
+        "vix_now":vix_now,"spy_now":spy_now,"spy_200":spy_200,
     }
 
 # ── LOAD WATCHLIST ────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=300)
 def run_watchlist(wl_key, win_prob_key):
-    all_tix = tuple(set(list(wl_key)+list(SECTOR_MAP.values())+
-                        list(FTSE_SECTOR_MAP.values())+["SPY","^VIX","^TNX","^FVX"]))
+    all_tix=tuple(set(list(wl_key)+list(SECTOR_MAP.values())+
+                      list(FTSE_SECTOR_MAP.values())+["SPY","^VIX","^TNX","^FVX"]))
     raw   = fetch_data(all_tix)
     vix_s = get_col(raw,"^VIX","Close"); spy_s=get_col(raw,"SPY","Close")
     t10   = get_col(raw,"^TNX","Close"); t5   =get_col(raw,"^FVX","Close")
@@ -344,7 +337,6 @@ st.markdown("""
     High-Sharpe signal engine — only trade when the odds are provably in your favour</p>
 </div>""", unsafe_allow_html=True)
 
-# Regime banner
 rc = "#00e676" if r0["l2"] else "#ff1744"
 spy_diff = ((r0["spy_now"]/r0["spy_200"])-1)*100
 st.markdown(
@@ -360,12 +352,12 @@ st.markdown(
     unsafe_allow_html=True)
 
 k1,k2,k3,k4,k5 = st.columns(5)
-k1.metric("Stocks analysed",    len(results))
-k2.metric("Trade signals today", len(trades),
+k1.metric("Stocks analysed",     len(results))
+k2.metric("Trade signals today",  len(trades),
           delta="Stand aside" if not trades else "Act on these")
-k3.metric("Avg win probability", f"{np.mean([r['win_prob'] for r in results])*100:.1f}%")
-k4.metric("Avg expected value",  f"${np.mean([r['ev'] for r in results]):,.0f}")
-k5.metric("Kelly position size", f"{KELLY_FRAC*100:.0f}% fraction",
+k3.metric("Avg win probability",  f"{np.mean([r['win_prob'] for r in results])*100:.1f}%")
+k4.metric("Avg expected value",   f"${np.mean([r['ev'] for r in results]):,.0f}")
+k5.metric("Kelly position size",  f"{KELLY_FRAC*100:.0f}% fraction",
           delta="Sharpe-optimised")
 
 st.markdown("---")
@@ -380,8 +372,7 @@ tab0,tab1,tab2,tab3,tab4,tab5 = st.tabs([
 
 with tab0:
     st.subheader("🔭 Universe Screener")
-    st.caption("Scans FTSE 100 or S&P 500, pre-filters, then runs the 5-layer model. "
-               "Only shows stocks where the odds are in your favour.")
+    st.caption("Scan FTSE 100 or S&P 500 through pre-filters then the 5-layer model.")
 
     sc1,sc2,sc3 = st.columns(3)
     with sc1:
@@ -393,15 +384,18 @@ with tab0:
             "S&P — Healthcare (XLV)","S&P — Energy (XLE)",
             "S&P — Industrials (XLI)","S&P — Consumer Disc. (XLY)",
             "Custom list"
-        ])
+        ], key="screener_universe")
     with sc2:
-        min_vol_m    = st.slider("Min avg volume (M/day)", 0.1, 5.0, 0.5, 0.1)
+        min_vol_m    = st.slider("Min avg volume (M/day)", 0.1, 5.0, 0.5, 0.1,
+                                 key="screener_vol")
     with sc3:
-        screen_top_n = st.slider("Show top N results", 3, 20, 10)
+        screen_top_n = st.slider("Show top N results", 3, 20, 10,
+                                 key="screener_topn")
 
     if universe_choice == "Custom list":
         custom_input = st.text_input("Tickers (comma-separated)",
-                                     value="SHEL.L,AZN.L,HSBA.L,AAPL,MSFT,NVDA")
+                                     value="SHEL.L,AZN.L,HSBA.L,AAPL,MSFT,NVDA",
+                                     key="screener_custom")
         screen_univ  = [t.strip().upper() for t in custom_input.split(",") if t.strip()]
     elif universe_choice == "FTSE 100":
         screen_univ  = FTSE100
@@ -425,15 +419,16 @@ with tab0:
             f"**{len(screen_univ)} stocks** → pre-filter → 5-layer model → "
             f"top {screen_top_n}  |  Signal quality: **{quality}**")
 
-    if st.button("🔭 Run Screener", type="primary", use_container_width=True):
+    if st.button("🔭 Run Screener", type="primary", use_container_width=True,
+                 key="run_screener_btn"):
         prog = st.progress(0, text="Fetching data...")
 
         @st.cache_data(ttl=600)
         def fetch_screen(tickers_key):
-            all_tix = list(set(list(tickers_key)+
-                               list(set(FTSE_SECTOR_MAP.values()))+
-                               list(set(SECTOR_MAP.values()))+
-                               ["SPY","^VIX","^TNX","^FVX"]))
+            all_tix=list(set(list(tickers_key)+
+                             list(set(FTSE_SECTOR_MAP.values()))+
+                             list(set(SECTOR_MAP.values()))+
+                             ["SPY","^VIX","^TNX","^FVX"]))
             end=datetime.today(); start=end-timedelta(days=420)
             return yf.download(all_tix,start=start,end=end,
                                auto_adjust=True,progress=False,group_by="ticker")
@@ -449,11 +444,10 @@ with tab0:
         for ticker in screen_univ:
             c=get_col(raw_sc,ticker,"Close"); v=get_col(raw_sc,ticker,"Volume")
             if len(c)<55 or len(v)<20: continue
-            price=c.iloc[-1]; avg_vol=v.rolling(20).mean().iloc[-1]
-            if price<1:                continue
-            if avg_vol<min_vol_m*1e6:  continue
-            if c.iloc[-1]<c.rolling(50).mean().iloc[-1]: continue
-            if (c.iloc[-1]/c.iloc[-20])-1<=0:            continue
+            if c.iloc[-1]<1:           continue
+            if v.rolling(20).mean().iloc[-1]<min_vol_m*1e6: continue
+            if c.iloc[-1]<c.rolling(50).mean().iloc[-1]:    continue
+            if (c.iloc[-1]/c.iloc[-20])-1<=0:               continue
             pf_passed.append(ticker)
 
         prog.progress(40, text=f"{len(pf_passed)} passed pre-filter...")
@@ -472,7 +466,7 @@ with tab0:
                                              else (0,0,0,1.0,None,0))
                 _rg,trd,*_ = classify_regime(vix_sc,spy_sc)
                 l1=wp>=MIN_WIN_PROB; l2=trd
-                l3=MIN_Z<=z<=MAX_Z; l4=kel>0.01; l5=p25>p25f
+                l3=MIN_Z<=z<=MAX_Z;  l4=kel>0.01; l5=p25>p25f
                 atr=(c.rolling(2).max()-c.rolling(2).min()).rolling(14).mean().iloc[-1]
                 sc_results.append({
                     "Ticker":ticker,"Price":round(float(c.iloc[-1]),2),
@@ -501,10 +495,10 @@ with tab0:
             near    = sc_df[~sc_df["All pass"]].head(10)
 
             s1,s2,s3,s4 = st.columns(4)
-            s1.metric("Scanned",      len(screen_univ))
-            s2.metric("Pre-filtered", len(pf_passed))
-            s3.metric("Trade signals",len(winners))
-            s4.metric("Regime",       regime_sc,
+            s1.metric("Scanned",       len(screen_univ))
+            s2.metric("Pre-filtered",  len(pf_passed))
+            s3.metric("Trade signals", len(winners))
+            s4.metric("Regime",        regime_sc,
                       delta="✅ Tradeable" if tradeable_sc else "❌ Bear",
                       delta_color="normal" if tradeable_sc else "inverse")
 
@@ -532,15 +526,14 @@ with tab0:
                 fig_ev=px.bar(
                     winners.head(screen_top_n).sort_values("EV $"),
                     x="EV $",y="Ticker",orientation="h",
-                    color="Win Prob",
-                    title="Expected value by stock",
+                    color="Win Prob",title="Expected value by stock",
                     height=max(250,len(winners)*50))
                 fig_ev.update_layout(paper_bgcolor="#0e1117",
                                      plot_bgcolor="#1c2030",font_color="white")
                 st.plotly_chart(fig_ev,use_container_width=True)
             else:
                 st.warning("❌ No stocks pass all 5 layers today. "
-                           "Consider lowering to Moderate quality or check back tomorrow.")
+                           "Try Moderate quality or check back tomorrow.")
 
             if len(near):
                 st.markdown("#### Near misses")
@@ -551,13 +544,13 @@ with tab0:
 
             st.download_button("⬇️ Download results",sc_df.to_csv(index=False),
                                f"screener_{datetime.today().strftime('%Y%m%d')}.csv",
-                               "text/csv")
+                               "text/csv",key="screener_download")
 
 # ── TAB 1: DECISIONS ──────────────────────────────────────────────────────────
 
 with tab1:
     if trades:
-        st.success(f"✅ **Trade today ({len(trades)} stocks):** "
+        st.success(f"✅ **Trade today ({len(trades)}):** "
                    f"{', '.join([r['Ticker'] for r in trades])}")
     else:
         st.warning("❌ No stocks pass all 5 layers today. Stand aside.")
@@ -566,82 +559,79 @@ with tab1:
 
     for r in sorted(results, key=lambda x: -x["ev"]):
         border="#00e676" if r["all_pass"] else "#333"
-        with st.container():
-            c0,c1,c2,c3,c4,c5,c6 = st.columns([1.2,1.4,1.4,1,1.4,1.2,1])
-            with c0:
-                st.markdown(
-                    f'<div style="background:#1c2030;border-left:3px solid {border};'
-                    f'padding:8px 12px;border-radius:6px;">'
-                    f'<div style="color:white;font-weight:700;font-size:16px">'
-                    f'{r["Ticker"]}</div>'
-                    f'<div style="color:#888;font-size:11px">'
-                    f'${r["Price"]:.2f} · {r["Sector"]}</div></div>',
-                    unsafe_allow_html=True)
-            with c1:
-                col="#00e676" if r["l1"] else "#ff1744"
-                st.markdown(
-                    f'<div style="background:#1c2030;border-radius:6px;padding:8px 12px;">'
-                    f'<div style="color:#90caf9;font-size:10px">Win probability</div>'
-                    f'<div style="color:{col};font-size:18px;font-weight:700">'
-                    f'{r["win_prob"]*100:.1f}% {"✅" if r["l1"] else "❌"}</div>'
-                    f'<div style="color:#555;font-size:10px">'
-                    f'Need ≥{MIN_WIN_PROB*100:.0f}% · n={r["n_samp"]}</div></div>',
-                    unsafe_allow_html=True)
-            with c2:
-                col="#00e676" if r["l2"] else "#ff1744"
-                st.markdown(
-                    f'<div style="background:#1c2030;border-radius:6px;padding:8px 12px;">'
-                    f'<div style="color:#90caf9;font-size:10px">Market regime</div>'
-                    f'<div style="color:{col};font-size:14px;font-weight:700">'
-                    f'{r["regime"]} {"✅" if r["l2"] else "❌"}</div>'
-                    f'<div style="color:#555;font-size:10px">'
-                    f'{r["exp_ret"]:+.1f}%/month expected</div></div>',
-                    unsafe_allow_html=True)
-            with c3:
-                col="#00e676" if r["l3"] else "#ff1744"
-                st.markdown(
-                    f'<div style="background:#1c2030;border-radius:6px;padding:8px 12px;">'
-                    f'<div style="color:#90caf9;font-size:10px">Z-score</div>'
-                    f'<div style="color:{col};font-size:18px;font-weight:700">'
-                    f'{r["z"]:.2f} {"✅" if r["l3"] else "❌"}</div>'
-                    f'<div style="color:#555;font-size:10px">Entry timing</div></div>',
-                    unsafe_allow_html=True)
-            with c4:
-                col="#00e676" if r["l4"] else "#ff1744"
-                st.markdown(
-                    f'<div style="background:#1c2030;border-radius:6px;padding:8px 12px;">'
-                    f'<div style="color:#90caf9;font-size:10px">Position size</div>'
-                    f'<div style="color:{col};font-size:18px;font-weight:700">'
-                    f'{r["kelly"]*100:.1f}% {"✅" if r["l4"] else "❌"}</div>'
-                    f'<div style="color:#555;font-size:10px">30% Kelly</div></div>',
-                    unsafe_allow_html=True)
-            with c5:
-                col="#00e676" if r["l5"] else "#ff1744"
-                st.markdown(
-                    f'<div style="background:#1c2030;border-radius:6px;padding:8px 12px;">'
-                    f'<div style="color:#90caf9;font-size:10px">Downside check</div>'
-                    f'<div style="color:{col};font-size:16px;font-weight:700">'
-                    f'${r["p25"]:,.0f} {"✅" if r["l5"] else "❌"}</div>'
-                    f'<div style="color:#555;font-size:10px">'
-                    f'P(loss) {r["ploss"]*100:.0f}%</div></div>',
-                    unsafe_allow_html=True)
-            with c6:
-                bg="#00e676" if r["all_pass"] else "#1c2030"
-                txt="#003300" if r["all_pass"] else "#555"
-                st.markdown(
-                    f'<div style="background:{bg};border-radius:6px;'
-                    f'padding:8px 12px;text-align:center;">'
-                    f'<div style="color:{txt};font-size:13px;font-weight:700">'
-                    f'{"TRADE" if r["all_pass"] else "SKIP"}</div>'
-                    f'<div style="color:{txt};font-size:11px">'
-                    f'EV ${r["ev"]:+,.0f}</div></div>',
-                    unsafe_allow_html=True)
+        c0,c1,c2,c3,c4,c5,c6 = st.columns([1.2,1.4,1.4,1,1.4,1.2,1])
+        with c0:
+            st.markdown(
+                f'<div style="background:#1c2030;border-left:3px solid {border};'
+                f'padding:8px 12px;border-radius:6px;">'
+                f'<div style="color:white;font-weight:700;font-size:16px">{r["Ticker"]}</div>'
+                f'<div style="color:#888;font-size:11px">${r["Price"]:.2f} · {r["Sector"]}</div>'
+                f'</div>', unsafe_allow_html=True)
+        with c1:
+            col="#00e676" if r["l1"] else "#ff1744"
+            st.markdown(
+                f'<div style="background:#1c2030;border-radius:6px;padding:8px 12px;">'
+                f'<div style="color:#90caf9;font-size:10px">Win probability</div>'
+                f'<div style="color:{col};font-size:18px;font-weight:700">'
+                f'{r["win_prob"]*100:.1f}% {"✅" if r["l1"] else "❌"}</div>'
+                f'<div style="color:#555;font-size:10px">'
+                f'Need ≥{MIN_WIN_PROB*100:.0f}% · n={r["n_samp"]}</div></div>',
+                unsafe_allow_html=True)
+        with c2:
+            col="#00e676" if r["l2"] else "#ff1744"
+            st.markdown(
+                f'<div style="background:#1c2030;border-radius:6px;padding:8px 12px;">'
+                f'<div style="color:#90caf9;font-size:10px">Market regime</div>'
+                f'<div style="color:{col};font-size:14px;font-weight:700">'
+                f'{r["regime"]} {"✅" if r["l2"] else "❌"}</div>'
+                f'<div style="color:#555;font-size:10px">'
+                f'{r["exp_ret"]:+.1f}%/month expected</div></div>',
+                unsafe_allow_html=True)
+        with c3:
+            col="#00e676" if r["l3"] else "#ff1744"
+            st.markdown(
+                f'<div style="background:#1c2030;border-radius:6px;padding:8px 12px;">'
+                f'<div style="color:#90caf9;font-size:10px">Z-score</div>'
+                f'<div style="color:{col};font-size:18px;font-weight:700">'
+                f'{r["z"]:.2f} {"✅" if r["l3"] else "❌"}</div>'
+                f'<div style="color:#555;font-size:10px">Entry timing</div></div>',
+                unsafe_allow_html=True)
+        with c4:
+            col="#00e676" if r["l4"] else "#ff1744"
+            st.markdown(
+                f'<div style="background:#1c2030;border-radius:6px;padding:8px 12px;">'
+                f'<div style="color:#90caf9;font-size:10px">Position size</div>'
+                f'<div style="color:{col};font-size:18px;font-weight:700">'
+                f'{r["kelly"]*100:.1f}% {"✅" if r["l4"] else "❌"}</div>'
+                f'<div style="color:#555;font-size:10px">30% Kelly</div></div>',
+                unsafe_allow_html=True)
+        with c5:
+            col="#00e676" if r["l5"] else "#ff1744"
+            st.markdown(
+                f'<div style="background:#1c2030;border-radius:6px;padding:8px 12px;">'
+                f'<div style="color:#90caf9;font-size:10px">Downside check</div>'
+                f'<div style="color:{col};font-size:16px;font-weight:700">'
+                f'${r["p25"]:,.0f} {"✅" if r["l5"] else "❌"}</div>'
+                f'<div style="color:#555;font-size:10px">'
+                f'P(loss) {r["ploss"]*100:.0f}%</div></div>',
+                unsafe_allow_html=True)
+        with c6:
+            bg="#00e676" if r["all_pass"] else "#1c2030"
+            txt="#003300" if r["all_pass"] else "#555"
+            st.markdown(
+                f'<div style="background:{bg};border-radius:6px;'
+                f'padding:8px 12px;text-align:center;">'
+                f'<div style="color:{txt};font-size:13px;font-weight:700">'
+                f'{"TRADE" if r["all_pass"] else "SKIP"}</div>'
+                f'<div style="color:{txt};font-size:11px">'
+                f'EV ${r["ev"]:+,.0f}</div></div>',
+                unsafe_allow_html=True)
         st.markdown("")
 
 # ── TAB 2: CHARTS ─────────────────────────────────────────────────────────────
 
 with tab2:
-    sel  = st.selectbox("Select stock",[r["Ticker"] for r in results])
+    sel  = st.selectbox("Select stock",[r["Ticker"] for r in results],key="chart_sel")
     r2   = next(x for x in results if x["Ticker"]==sel)
     cls  = r2["close_s"]
 
@@ -662,11 +652,9 @@ with tab2:
         title=(f"{sel}  |  Win prob {r2['win_prob']*100:.1f}%  |  "
                f"Kelly {r2['kelly']*100:.1f}%  |  "
                f"{'✅ TRADE' if r2['all_pass'] else '❌ SKIP'}"),
-        paper_bgcolor="#0e1117",plot_bgcolor="#1c2030",
-        font_color="white",height=460)
+        paper_bgcolor="#0e1117",plot_bgcolor="#1c2030",font_color="white",height=460)
     st.plotly_chart(fig_p,use_container_width=True)
 
-    # Win probability gauge
     col1,col2 = st.columns(2)
     with col1:
         fig_g=go.Figure(go.Indicator(
@@ -686,7 +674,6 @@ with tab2:
         st.plotly_chart(fig_g,use_container_width=True)
 
     with col2:
-        # Rolling win probability
         ret_s  = cls.pct_change().dropna()
         rm     = ret_s.rolling(20).mean(); rs2=ret_s.rolling(20).std()
         proxy  = ((rm/rs2.replace(0,np.nan)).clip(-3,3)*16.67+50).dropna()
@@ -694,8 +681,7 @@ with tab2:
         aln    = pd.concat([proxy,fwd],axis=1).dropna(); aln.columns=["d","f"]
         rwp    = aln["f"].gt(0).rolling(30).mean()
         fig_wp = go.Figure()
-        fig_wp.add_trace(go.Scatter(x=rwp.index,y=rwp*100,
-                                    fill="tozeroy",
+        fig_wp.add_trace(go.Scatter(x=rwp.index,y=rwp*100,fill="tozeroy",
                                     fillcolor="rgba(33,150,243,0.15)",
                                     line=dict(color="#2196F3",width=1.5)))
         fig_wp.add_hline(y=MIN_WIN_PROB*100,line_dash="dash",line_color="#00e676",
@@ -706,7 +692,6 @@ with tab2:
                              title="Rolling win probability over time")
         st.plotly_chart(fig_wp,use_container_width=True)
 
-    # Monte Carlo histogram
     st.markdown("#### Monte Carlo — 1,000 simulated outcomes")
     mc_oc=r2["mc_outcomes"]
     fig_mc=go.Figure()
@@ -715,8 +700,7 @@ with tab2:
     for pct,col,lbl in [(25,"#ff6e40","P25"),(50,"#ffd740","P50"),(75,"#00e676","P75")]:
         v2=np.percentile(mc_oc,pct)
         fig_mc.add_vline(x=v2,line_dash="dash",line_color=col,
-                         annotation_text=f"{lbl}: ${v2:,.0f}",
-                         annotation_font_color=col)
+                         annotation_text=f"{lbl}: ${v2:,.0f}",annotation_font_color=col)
     fig_mc.add_vline(x=0,line_color="#555",line_width=1)
     fig_mc.update_layout(paper_bgcolor="#0e1117",plot_bgcolor="#1c2030",
                          font_color="white",height=280,
@@ -735,18 +719,20 @@ with tab2:
 
 with tab3:
     st.subheader("🎲 Monte Carlo Explorer")
-    st.caption("Simulate trade outcomes at different position sizes.")
-    mc_ticker = st.selectbox("Stock",[r["Ticker"] for r in results],key="mc_t")
+    st.caption("Simulate trade outcomes at different position sizes and holding periods.")
+
+    mc_ticker = st.selectbox("Stock",[r["Ticker"] for r in results],key="mc_sel")
     mc_r      = next(x for x in results if x["Ticker"]==mc_ticker)
     mc_cls    = mc_r["close_s"]
 
     mc1c,mc2c,mc3c = st.columns(3)
-    with mc1c: mc_capital = st.number_input("Portfolio ($)",value=100000,step=10000)
+    with mc1c: mc_capital = st.number_input("Portfolio ($)",value=100000,
+                                             step=10000,key="mc_cap")
     with mc2c: mc_pos_pct = st.slider("Position %",1,25,
-                                       max(1,int(mc_r["kelly"]*100)))
-    with mc3c: mc_horizon = st.slider("Hold days",5,60,15)
+                                       max(1,int(mc_r["kelly"]*100)),key="mc_pos")
+    with mc3c: mc_horizon = st.slider("Hold days",5,60,15,key="mc_hor")
 
-    if st.button("▶️ Run",type="primary"):
+    if st.button("▶️ Run simulation",type="primary",key="mc_run"):
         ret_mc=mc_cls.pct_change().dropna().values
         entry=mc_cls.iloc[-1]; shares=(mc_capital*(mc_pos_pct/100))/entry
         sims=np.array([
@@ -764,8 +750,7 @@ with tab3:
                              (50,"#ffd740","P50"),(75,"#00e676","P75")]:
             v3=np.percentile(sims,pct)
             fig_sim.add_vline(x=v3,line_dash="dash",line_color=col,
-                              annotation_text=f"{lbl}: ${v3:,.0f}",
-                              annotation_font_color=col)
+                              annotation_text=f"{lbl}: ${v3:,.0f}",annotation_font_color=col)
         fig_sim.add_vline(x=0,line_color="#555",line_width=1.5)
         fig_sim.update_layout(
             paper_bgcolor="#0e1117",plot_bgcolor="#1c2030",font_color="white",height=360,
@@ -777,11 +762,9 @@ with tab3:
         st.plotly_chart(fig_sim,use_container_width=True)
         kelly_rec=kelly_size(mc_r["win_prob"])*100
         if mc_pos_pct>kelly_rec*1.5:
-            st.warning(f"⚠️ {mc_pos_pct}% exceeds recommended Kelly "
-                       f"({kelly_rec:.1f}%). Sharpe will suffer.")
+            st.warning(f"⚠️ {mc_pos_pct}% exceeds Kelly ({kelly_rec:.1f}%). Sharpe will suffer.")
         else:
-            st.success(f"✅ Position size within Kelly bounds "
-                       f"(recommended: {kelly_rec:.1f}%)")
+            st.success(f"✅ Within Kelly bounds (recommended: {kelly_rec:.1f}%)")
 
 # ── TAB 4: BACKTEST ───────────────────────────────────────────────────────────
 
@@ -789,17 +772,21 @@ with tab4:
     st.subheader("🔁 Backtest")
 
     bc1,bc2,bc3 = st.columns(3)
-    with bc1: bt_tick   = st.text_input("Ticker",value="SHEL.L").upper()
+    with bc1:
+        bt_tick = st.text_input("Ticker",value="SHEL.L",key="bt_ticker_input").upper()
     with bc2:
         bt_period = st.selectbox("Period",
-            ["5 years","3 years","2 years","1 year","Custom"],index=0)
-    with bc3: bt_cap = st.number_input("Capital ($)",value=100000,step=10000)
+            ["5 years","3 years","2 years","1 year","Custom"],
+            index=0,key="bt_period")
+    with bc3:
+        bt_cap = st.number_input("Capital ($)",value=100000,step=10000,key="bt_cap")
 
     if bt_period=="Custom":
         cc1,cc2=st.columns(2)
         with cc1: bt_start=st.date_input("Start",
-                            value=datetime.today()-timedelta(days=5*365))
-        with cc2: bt_end=st.date_input("End",value=datetime.today())
+                            value=datetime.today()-timedelta(days=5*365),
+                            key="bt_start")
+        with cc2: bt_end=st.date_input("End",value=datetime.today(),key="bt_end")
     else:
         years=int(bt_period.split()[0])
         bt_start=datetime.today()-timedelta(days=years*365)
@@ -807,7 +794,7 @@ with tab4:
 
     st.info(f"**{bt_tick}** · "
             f"{bt_start.strftime('%d %b %Y') if hasattr(bt_start,'strftime') else bt_start}"
-            f" → today · {bt_period} · Signal quality: {quality}")
+            f" → today · {bt_period} · {quality}")
 
     @st.cache_data(ttl=600)
     def backtest_stat(ticker,start_str,capital,win_prob_key):
@@ -815,14 +802,12 @@ with tab4:
         raw=yf.download(all_tix,start=start_str,
                         end=datetime.today().strftime("%Y-%m-%d"),
                         auto_adjust=True,progress=False,group_by="ticker")
-        c=get_col(raw,ticker,"Close"); v=get_col(raw,ticker,"Volume")
+        c=get_col(raw,ticker,"Close");   v=get_col(raw,ticker,"Volume")
         vix=get_col(raw,"^VIX","Close"); spy=get_col(raw,"SPY","Close")
         sc=get_col(raw,get_sector(ticker),"Close")
         t10=get_col(raw,"^TNX","Close"); t5=get_col(raw,"^FVX","Close")
         if len(c)<60: return None,None,None,None
         idx=c.index
-        for s,ref in [(vix,idx),(spy,idx),(sc,idx),(t10,idx),(t5,idx)]:
-            pass
         vix=vix.reindex(idx,method="ffill"); spy=spy.reindex(idx,method="ffill")
         sc=sc.reindex(idx,method="ffill");   t10=t10.reindex(idx,method="ffill")
         t5=t5.reindex(idx,method="ffill")
@@ -875,7 +860,7 @@ with tab4:
                 pd.Series(equity,index=idx),
                 pd.Series(wp_list,index=idx),c)
 
-    if st.button("▶️ Run backtest",type="primary"):
+    if st.button("▶️ Run backtest",type="primary",key="bt_run"):
         with st.spinner(f"Backtesting {bt_tick} — {bt_period}..."):
             bts=str(bt_start.date() if hasattr(bt_start,"date") else bt_start)
             tdf,eq_s,wp_s,cls_bt=backtest_stat(bt_tick,bts,bt_cap,MIN_WIN_PROB)
@@ -895,7 +880,7 @@ with tab4:
             al=lo["PnL"].mean() if len(lo)>0 else 0
             pf=abs(aw/al) if al!=0 else 0
 
-            m1,m2,m3,m4,m5,m6 = st.columns(6)
+            m1,m2,m3,m4,m5,m6=st.columns(6)
             m1.metric("Total return", f"{tr:.1f}%",delta=f"{tr-bh:+.1f}% vs B&H")
             m2.metric("Buy & hold",   f"{bh:.1f}%")
             m3.metric("Sharpe",       round(sh,2),
@@ -918,8 +903,7 @@ with tab4:
                                      ("STOP","x","#ff1744")]:
                     t=tdf[tdf["Action"]==act]
                     if len(t):
-                        fig_bt.add_trace(go.Scatter(x=t["Date"],y=t["Price"],
-                            mode="markers",
+                        fig_bt.add_trace(go.Scatter(x=t["Date"],y=t["Price"],mode="markers",
                             marker=dict(symbol=sym,size=12,color=col),name=act))
             fig_bt.update_layout(paper_bgcolor="#0e1117",plot_bgcolor="#1c2030",
                                  font_color="white",height=360,
@@ -940,12 +924,10 @@ with tab4:
             st.plotly_chart(fig_eq,use_container_width=True)
 
             fig_wp2=go.Figure()
-            fig_wp2.add_trace(go.Scatter(x=wp_s.index,y=wp_s*100,
-                                         fill="tozeroy",
+            fig_wp2.add_trace(go.Scatter(x=wp_s.index,y=wp_s*100,fill="tozeroy",
                                          fillcolor="rgba(33,150,243,0.1)",
                                          line=dict(color="#2196F3",width=1)))
-            fig_wp2.add_hline(y=MIN_WIN_PROB*100,line_dash="dash",
-                              line_color="#00e676",
+            fig_wp2.add_hline(y=MIN_WIN_PROB*100,line_dash="dash",line_color="#00e676",
                               annotation_text=f"Threshold {MIN_WIN_PROB*100:.0f}%")
             fig_wp2.update_layout(paper_bgcolor="#0e1117",plot_bgcolor="#1c2030",
                                   font_color="white",height=180,
@@ -960,12 +942,13 @@ with tab4:
                        "CLOSE":"#90caf9"}.get(val,"white")
                     return f"color:{c};font-weight:bold"
                 def cp(val):
-                    return (f"color:{'#00e676' if val>0 else '#ff1744' if val<0 else 'white'}")
+                    return f"color:{'#00e676' if val>0 else '#ff1744' if val<0 else 'white'}"
                 st.dataframe(
                     tdf.style.map(ca,subset=["Action"]).map(cp,subset=["PnL"]),
                     use_container_width=True,height=240)
-                st.download_button("⬇️ Download",tdf.to_csv(index=False),
-                                   f"trades_{bt_tick}.csv","text/csv")
+                st.download_button("⬇️ Download trades",tdf.to_csv(index=False),
+                                   f"trades_{bt_tick}.csv","text/csv",
+                                   key="bt_download")
 
 # ── TAB 5: POSITIONS ──────────────────────────────────────────────────────────
 
@@ -978,23 +961,28 @@ with tab5:
 
     st.markdown("#### Add a position")
     p1,p2,p3,p4,p5=st.columns(5)
-    with p1: pos_ticker   =st.text_input("Ticker",value="SHEL.L").upper()
-    with p2: pos_entry    =st.number_input("Entry price",value=100.0,step=0.01)
-    with p3: pos_shares   =st.number_input("Shares",value=10,step=1)
-    with p4: pos_stop     =st.number_input("Stop-loss",value=90.0,step=0.01)
-    with p5: pos_date     =st.date_input("Entry date",value=datetime.today())
-    pos_max_weeks=st.slider("Maximum hold (weeks)",2,16,8)
+    with p1:
+        pos_ticker=st.text_input("Ticker",value="SHEL.L",key="pos_ticker_input").upper()
+    with p2:
+        pos_entry=st.number_input("Entry price",value=100.0,step=0.01,key="pos_entry")
+    with p3:
+        pos_shares=st.number_input("Shares",value=10,step=1,key="pos_shares")
+    with p4:
+        pos_stop=st.number_input("Stop-loss",value=90.0,step=0.01,key="pos_stop")
+    with p5:
+        pos_date=st.date_input("Entry date",value=datetime.today(),key="pos_date")
+    pos_max_weeks=st.slider("Maximum hold (weeks)",2,16,8,key="pos_maxwks")
 
-    if st.button("➕ Add",type="primary"):
+    if st.button("➕ Add position",type="primary",key="pos_add"):
         st.session_state.positions.append({
             "ticker":pos_ticker,"entry":pos_entry,"shares":pos_shares,
             "stop":pos_stop,"date":str(pos_date),"max_weeks":pos_max_weeks,
             "trail_high":pos_entry,
         })
-        st.success(f"Added {pos_ticker}")
+        st.success(f"Added {pos_ticker} — {pos_shares} shares at ${pos_entry:.2f}")
 
     if not st.session_state.positions:
-        st.info("No open positions yet.")
+        st.info("No open positions yet. Add one above.")
     else:
         st.markdown("---")
 
@@ -1040,22 +1028,22 @@ with tab5:
                 dms=50; wp=0.5; z=0.0
 
             exit_urgent=[]; exit_signals=[]; profit_flags=[]
-            if cur<=stop:         exit_urgent.append("🔴 STOP-LOSS HIT — exit immediately")
-            if cur<=trail_stop:   exit_urgent.append("🔴 TRAILING STOP HIT — exit immediately")
-            if wp<0.45:           exit_signals.append(f"⚠️ Win prob fell to {wp*100:.1f}%")
-            if dms<40:            exit_signals.append(f"⚠️ DMS fell to {dms:.0f}")
-            if z>3.0:             exit_signals.append(f"⚠️ Overbought — Z-score {z:.2f}")
-            if not tradeable_pos: exit_signals.append(f"⚠️ Regime: {regime_pos}")
+            if cur<=stop:           exit_urgent.append("🔴 STOP-LOSS HIT — exit immediately")
+            if cur<=trail_stop:     exit_urgent.append("🔴 TRAILING STOP HIT — exit immediately")
+            if wp<0.45:             exit_signals.append(f"⚠️ Win prob fell to {wp*100:.1f}%")
+            if dms<40:              exit_signals.append(f"⚠️ DMS fell to {dms:.0f}")
+            if z>3.0:               exit_signals.append(f"⚠️ Overbought — Z {z:.2f}")
+            if not tradeable_pos:   exit_signals.append(f"⚠️ Regime: {regime_pos}")
             if weeks_held>=max_wks: exit_signals.append(f"⚠️ Max hold {max_wks}wks reached")
-            if pnl_cash>=3*atr*shares: profit_flags.append("💰 +3× ATR — sell ⅓")
-            if pnl_cash>=2*atr*shares: profit_flags.append("💰 +2× ATR — sell ⅓")
+            if pnl_cash>=3*atr*shares: profit_flags.append("💰 +3× ATR gain — consider selling ⅓")
+            if pnl_cash>=2*atr*shares: profit_flags.append("💰 +2× ATR gain — consider selling ⅓")
             if weeks_held>=2 and pnl_pct>0:
                 profit_flags.append(f"✅ Move stop to breakeven (${entry:.2f})")
 
-            if exit_urgent:     sc_="⛔ EXIT NOW";  bc_="#ff1744"
-            elif exit_signals:  sc_="⚠️ REVIEW";    bc_="#ff6e40"
-            elif profit_flags:  sc_="💰 MANAGE";    bc_="#ffd740"
-            else:               sc_="✅ HOLD";       bc_="#00e676"
+            if exit_urgent:     sc_="⛔ EXIT NOW"; bc_="#ff1744"
+            elif exit_signals:  sc_="⚠️ REVIEW";   bc_="#ff6e40"
+            elif profit_flags:  sc_="💰 MANAGE";   bc_="#ffd740"
+            else:               sc_="✅ HOLD";      bc_="#00e676"
 
             st.markdown(
                 f'<div style="background:#1c2030;border-left:4px solid {bc_};'
@@ -1068,25 +1056,25 @@ with tab5:
                 unsafe_allow_html=True)
 
             m1,m2,m3,m4,m5,m6,m7=st.columns(7)
-            m1.metric("Price",       f"${cur:.2f}")
-            m2.metric("P&L",         f"${pnl_cash:+,.0f}",delta=f"{pnl_pct:+.1f}%",
+            m1.metric("Price",     f"${cur:.2f}")
+            m2.metric("P&L",       f"${pnl_cash:+,.0f}",delta=f"{pnl_pct:+.1f}%",
                       delta_color="normal" if pnl_cash>=0 else "inverse")
-            m3.metric("Value",       f"${cur*shares:,.0f}")
-            m4.metric("Held",        f"{days_held}d / {max_wks}wk max")
-            m5.metric("Win prob",    f"{wp*100:.1f}%",
+            m3.metric("Value",     f"${cur*shares:,.0f}")
+            m4.metric("Held",      f"{days_held}d / {max_wks}wk max")
+            m5.metric("Win prob",  f"{wp*100:.1f}%",
                       delta="✅" if wp>=0.55 else "❌",
                       delta_color="normal" if wp>=0.55 else "inverse")
-            m6.metric("DMS",         f"{dms:.0f}",
+            m6.metric("DMS",       f"{dms:.0f}",
                       delta="✅" if dms>=40 else "❌",
                       delta_color="normal" if dms>=40 else "inverse")
-            m7.metric("Trail stop",  f"${trail_stop:.2f}")
+            m7.metric("Trail stop",f"${trail_stop:.2f}")
 
             for msg in exit_urgent:  st.error(msg)
             for msg in exit_signals: st.warning(msg)
             if profit_flags and not exit_urgent:
                 for msg in profit_flags: st.info(msg)
             if not exit_urgent and not exit_signals and not profit_flags:
-                st.success("All healthy — hold.")
+                st.success("All conditions healthy — hold.")
 
             with st.expander(f"📈 {ticker} chart"):
                 fig_pos=go.Figure()
@@ -1108,7 +1096,7 @@ with tab5:
                                       margin=dict(l=0,r=0,t=20,b=0))
                 st.plotly_chart(fig_pos,use_container_width=True)
 
-            if st.button(f"🗑️ Remove {ticker}",key=f"rm_{idx_p}"):
+            if st.button(f"🗑️ Remove {ticker}",key=f"rm_{idx_p}_{ticker}"):
                 to_remove.append(idx_p)
             st.markdown("")
 
@@ -1118,17 +1106,19 @@ with tab5:
 
         if len(st.session_state.positions)>1:
             st.markdown("---")
-            tot_pnl=sum((get_col(raw_pos,p["ticker"],"Close").iloc[-1]-p["entry"])*p["shares"]
-                        for p in st.session_state.positions
-                        if len(get_col(raw_pos,p["ticker"],"Close"))>0)
-            tot_val=sum(get_col(raw_pos,p["ticker"],"Close").iloc[-1]*p["shares"]
-                        for p in st.session_state.positions
-                        if len(get_col(raw_pos,p["ticker"],"Close"))>0)
+            tot_pnl=sum(
+                (get_col(raw_pos,p["ticker"],"Close").iloc[-1]-p["entry"])*p["shares"]
+                for p in st.session_state.positions
+                if len(get_col(raw_pos,p["ticker"],"Close"))>0)
+            tot_val=sum(
+                get_col(raw_pos,p["ticker"],"Close").iloc[-1]*p["shares"]
+                for p in st.session_state.positions
+                if len(get_col(raw_pos,p["ticker"],"Close"))>0)
             ps1,ps2,ps3=st.columns(3)
             ps1.metric("Open positions",len(st.session_state.positions))
-            ps2.metric("Total P&L",f"${tot_pnl:+,.0f}",
+            ps2.metric("Total P&L",     f"${tot_pnl:+,.0f}",
                        delta_color="normal" if tot_pnl>=0 else "inverse")
-            ps3.metric("Total value",f"${tot_val:,.0f}")
+            ps3.metric("Total value",   f"${tot_val:,.0f}")
 
 st.markdown("---")
 st.caption("⚠️ For informational purposes only. Not financial advice.")
