@@ -284,7 +284,12 @@ def compute_dms(c, v, vix_s, spy_s, sc, t10, t5):
                  WEIGHTS["breadth"]*brd  + WEIGHTS["volatility"]*vlt +
                  WEIGHTS["yield_curve"]*yld, 2)
 
-def bayesian_win_prob(c, dms_now, window=20, horizon=10):
+def bayesian_win_prob(c, dms_now, window=20, horizon=20):
+    """
+    Measures win probability over `horizon` forward trading days.
+    Default 20 days matches a 4-8 week holding period.
+    Window of 20 days uses recent momentum as the DMS proxy.
+    """
     ret   = c.pct_change().dropna()
     rm    = ret.rolling(window).mean(); rs=ret.rolling(window).std()
     proxy = ((rm/rs.replace(0,np.nan)).clip(-3,3)*16.67+50).dropna()
@@ -314,7 +319,7 @@ def kelly_size(win_prob, avg_win=0.03, avg_loss=0.015):
     b=avg_win/avg_loss; q=1-win_prob
     return round(min(max((b*win_prob-q)/b*KELLY_FRAC,0),MAX_POS),4)
 
-def monte_carlo(c, kelly, capital=100000, horizon=10):
+def monte_carlo(c, kelly, capital=100000, horizon=20):
     ret   = c.pct_change().dropna().values
     entry = c.iloc[-1]; shares=(capital*kelly)/entry
     oc    = np.array([
@@ -782,7 +787,7 @@ with tab3:
     mc1c,mc2c,mc3c = st.columns(3)
     with mc1c: mc_capital=st.number_input("Portfolio ($)",value=100000,step=10000,key="mc_cap")
     with mc2c: mc_pos_pct=st.slider("Position %",1,25,max(1,int(mc_r["kelly"]*100)),key="mc_pos")
-    with mc3c: mc_horizon=st.slider("Hold days",5,60,15,key="mc_hor")
+    with mc3c: mc_horizon=st.slider("Hold days",5,60,20,key="mc_hor")
 
     if st.button("▶️ Run simulation",type="primary",key="mc_run"):
         ret_mc=mc_cls.pct_change().dropna().values
